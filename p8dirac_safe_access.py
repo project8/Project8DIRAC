@@ -37,6 +37,10 @@ def p8dirac_safe_access(mode, lfn, pfn, se, retries, wait):
             status = dirac.addFile(lfn, pfn, se)
         elif mode == 'remove':
             status = dirac.removeFile(lfn)
+        elif mode == 'replace':
+            if len(dirac.getReplicas(lfn)['Value']['Successful'].keys()) > 0:
+                status = dirac.removeFile(lfn)
+            status = dirac.addFile(lfn, pfn, se)
         else:
             print('p8dirac_safe_access: invalid access mode {}'.format(mode))
             return status
@@ -63,12 +67,12 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description = 'A production-hard catalog access method.')
 
     ##?? BAV - how to make some of these optional, consistent with the Script.parseCommandLine() call above?
-    parser.add_argument('mode',    help = 'a catalog access mode', choices = ['get', 'add', 'remove'],        type = str, default = default_mode)
-    parser.add_argument('lfn',     help = 'the catalog LFN',                                                  type = str)
-    parser.add_argument('pfn',     help = 'the local PFN',                                                    type = str, default = None)
-    parser.add_argument('se',      help = 'the storage element to receive the physical file (add mode only)', type = str, default = default_SE)
-    parser.add_argument('retries', help = 'the number of times to attempt access',                            type = int, default = default_retries)
-    parser.add_argument('wait',    help = 'the number of seconds between attempts',                           type = int, default = default_wait)
+    parser.add_argument('mode',    help = 'a catalog access mode', choices = ['get', 'add', 'remove', 'replace'], type = str, default = default_mode)
+    parser.add_argument('lfn',     help = 'the catalog LFN',                                                      type = str)
+    parser.add_argument('pfn',     help = 'the local PFN',                                                        type = str, default = None)
+    parser.add_argument('se',      help = 'the storage element to receive the physical file (add mode only)',     type = str, default = default_SE)
+    parser.add_argument('retries', help = 'the number of times to attempt access',                                type = int, default = default_retries)
+    parser.add_argument('wait',    help = 'the number of seconds between attempts',                               type = int, default = default_wait)
     
     args = parser.parse_args()
     
