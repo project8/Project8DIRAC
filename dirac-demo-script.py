@@ -35,6 +35,7 @@ class Params:
             gLogger.info("ping value: {}".format(value))
             self.pingsToDo = max(1, int(value))
         except ValueError:
+            gLogger.error("    recieved {}".format(value))
             return S_ERROR("Number of pings must be a number")
         return S_OK()
 
@@ -47,7 +48,7 @@ class Params:
                     ('', 'text=', 'Text to print'),
                     ('u', 'upper', 'Print text in upper case'),
                     ('r', 'showRaw', 'Show raw result from the query', self.setRawResult),
-                    ('p', 'numPings=', 'Number of pings to do (default 1)', self.setNumOfPingsToDo),
+                    ('p:', 'numPings=', 'Number of pings to do (default 1)', self.setNumOfPingsToDo),
                    ]
 
         for switch in switches:
