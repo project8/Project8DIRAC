@@ -39,11 +39,22 @@ def p8dirac_getruns(cut_strings):
     for cut_string in cut_strings:
         command = '{} \'{}\''.format(command, cut_string)
 
-    lfn_list = sorted([lfn for lfn in subprocess.check_output(command, shell=True).split('\n')[:-1]
-                        if lfn.endswith('.mat') or lfn.endswith('.MAT')])
+    lfn_list = sorted([lfn for lfn in subprocess.check_output(command, shell=True).split('\n')[:-1]])
+                     #   if lfn.endswith('.mat') or lfn.endswith('.MAT')])
 
+    run_list = []
+
+    for lfn in lfn_list:
+        if lfn.split('/')[4].isdigit(): # this is a run <2773
+            run_list.append(int(lfn.split('/')[4]))
+        elif lfn.split('/')[6].isdigit(): # this is a run >= 2773
+            run_list.append(int(lfn.split('/')[6]))
+        else:
+            print('There is a malformed file path in your request - need to test and handle this case')
+
+            
     # this line for runs >= 2773 
-    run_list = sorted(int(lfn.split('/')[6]) for lfn in lfn_list)
+    #run_list = sorted(int(lfn.split('/')[6]) for lfn in lfn_list)
     # this line for runs < 2773 
     #run_list = sorted(int(lfn.split('/')[4]) for lfn in lfn_list)
 
