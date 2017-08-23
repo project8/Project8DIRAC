@@ -6,24 +6,28 @@ from DIRAC import S_OK, S_ERROR, gLogger, exit as DIRAC_Exit
 from DIRAC.Core.Base import Script
 
 class BaseScript(object):
+    # switches is a list of 3 or 4 element tuples, where the elements are:
+    #      0 : short form (single character) command line flag
+    #      1 : long form (- separated words) command line flag
+    #      2 : description string shown with --help
+    #     [3]: default value to store once the item is registered
 
-    def __init__(self, switches=[]):
+    #     By default, data for each flag are stored in self._<long>.replace('-','_')
+    #     The value for each is set by the method self.set_<long>.replace('-','_'),
+    #     a method which by default just blindly stores the value given but which
+    #     may be overridden in derrived class to have more logic.
+    #     * here <long> is the long form of the flag specified in argument 1.
+    #
+    #     Note that in the implementation of self.main() any configured switches show
+    #         up in kwargs, positional arguments are in args
+    switches = []
+
+    def __init__(self):
         '''
-        switches is a list of 3 or 4 element tuples, where the elements are:
-             0 : short form (single character) command line flag
-             1 : long form (- separated words) command line flag
-             2 : description string shown with --help
-            [3]: default value to store once the item is registered
-
-            By default, data for each flag are stored in self._<long>.replace('-','_')
-            The value for each is set by the method self.set_<long>.replace('-','_'),
-            a method which performs no logic by default but which may be overridden.
-
-        Note that in the implementation of self.main() any configured switches show 
-            up in kwargs, positional arguments are in args
         '''
-        for switch in switches:
+        for switch in self.switches:
             self.registerSwitch(switch)
+        Script.setUsageMessage(self.__doc__)
         Script.parseCommandLine(ignoreErrors=False)
         self.args = Script.getPositionalArgs()
 
@@ -32,9 +36,9 @@ class BaseScript(object):
         if hasattr(self, 'main'):
             self.main()
         else:
-            gLogger.error('no main method implemented')
+            gLogger.error('no main method implemented, your custom logic goes there')
             DIRACExit(1)
-        DIRACExit(0)
+        DIRAC_Exit(0)
 
     def _default_set(self, name, value):
         gLogger.info('calling set {} -> {}'.format(name,repr(value)))
