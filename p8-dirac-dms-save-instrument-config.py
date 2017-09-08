@@ -84,14 +84,17 @@ class GetInstrumentConfig(BaseScript):
             gLogger.error('queries of multiple RID not yet supported')
             DIRAC_exit(1)
         configobject = P8InstrumentConfig()
-        adict = configobject.getConfigFromCatalog(int(self.args[0]))
+        if isinstance(self.outputfile,str):
+            adict = configobject.saveConfigFromCatalog(int(self.args[0]),self.outputfile)
+        else: 
+            gLogger.error("output file given is not a string")
         # newdict = {}
-        for key in sorted(adict.keys()):
-            value = adict[key]
+        # for key in sorted(adict.keys()):
+            # value = adict[key]
             # if isinstance(value,list) and len(value)==1:
             #     value = value[0]
             # newdict.update({key:value})
-            gLogger.error("{}:\t {}".format(key,value))
+            # gLogger.error("{}:\t {}".format(key,value))
         # if isinstance(self.outputfile,str):
         #     gLogger.info("Saving instrument config into {}".format(self.outputfile))
         #     import json            
