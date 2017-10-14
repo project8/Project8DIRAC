@@ -72,12 +72,12 @@ class BaseScript(object):
             gLogger.error('unable to call {}'.format('set_' + this_name))
             pass
 
-        shortName = switch[0].rstrip(':=')
-        shortName += ":"
-        longName = switch[1].rstrip(':=')
-        longName += "="
+        # shortName = switch[0].rstrip(':=')
+        # shortName += ":"
+        # longName = switch[1].rstrip(':=')
+        # longName += "="
         Script.registerSwitch(
-            shortName, longName, switch[2], getattr(self, 'set_' + this_name))
+            switch[0], switch[1], switch[2], getattr(self, 'set_' + this_name))
 
         # if a default was provided, set it
         if len(switch) == 4:
