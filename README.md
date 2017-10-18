@@ -12,3 +12,12 @@ Some notes:
 - Any DIRAC modules you need should be imported inside your implementation of *main*, this ensures that they happen after required API interactions have happened
 - You should include the line `__RCSID__ = '$Id$'` at the top of your script (I don't know what this does but it says to do it in the docs -BHL)
 - Remember that you should **NOT** use print (import gLogger and use its various levels), and you should use dirac's S_OK and exit methods for return codes etc.
+
+
+# Existing commands (status and description)
+
+- p8dirac_safe_access (working): 
+- p8dirac_getruns (working):
+- p8-dirac-dms-get-ancestors ():
+- p8-dirac-dms-get-analysis-done ():
+- p8-dirac-dms-move-data-fc ():

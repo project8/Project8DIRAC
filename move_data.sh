@@ -16,9 +16,9 @@ echo "pre-job directory list:"
 ls -l
 echo " "; echo " "
 
-echo "command: python move_data.py $@"
+echo "command: python move_data_fc.py $@"
 echo " "; echo " "
-python move_data.py $@
+python move_data_fc.py $@
 
 echo " "; echo " "
 echo "post-job directory list:"

@@ -5,7 +5,7 @@
 # It takes an input file as input containing a dictionary of the folders to move and their new location.
 # It will split this file into sub-files
 # For each subfolder to move, it will first download the files on the node, then add them to their new location on the FC and finally remove the files from the FC
-# NB: this script does not protect the genealogy of the files (yet...)
+# NB: this script does not protect the genealogy or metadata of the files (yet...)
 # Author: M Guigue
 # Creation: Oct 10 2017
 
@@ -23,13 +23,13 @@ import os
 __RCSID__ = '$Id$'
 
 
-class SubmitMoveJobs(BaseScript):
+class SubmitMoveDataJobs(BaseScript):
 
     '''
     Submit a job that will move files on the file catalog.
     It takes an input file as input containing a dictionary of the folders to move and their new location.
     For each subfolder to move, it will first download the files on the node, then add them to their new location on the FC and finally remove the files from the FC
-    NB: this script does not protect the genealogy of the files (yet...)
+    NB: this script does not protect the genealogy or metadata of the files (yet...)
     '''
     switches = [
         ('f:', 'filename=', 'Name of the file containing the location of the folders to move and where', 'details.yaml'),
@@ -88,7 +88,7 @@ class SubmitMoveJobs(BaseScript):
             j.setDestination('DIRAC.PNNL.us')
             j.setLogLevel('debug')
 
-            j.setInputSandbox(['move_data.py', 'move_data.sh',
+            j.setInputSandbox(['move_data_fc.py', 'move_data.sh',
                                '../utilities/p8dirac_safe_access.py', 'details_{}.yaml'.format(iJob)])
             j.setOutputSandbox(['std.err', 'std.out'])
             # submit the job
@@ -114,7 +114,7 @@ class SubmitMoveJobs(BaseScript):
 
 # make it able to be run from a shell
 if __name__ == "__main__":
-    script = SubmitMoveJobs()
+    script = SubmitMoveDataJobs()
     script()
 
 

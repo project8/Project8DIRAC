@@ -3,7 +3,10 @@
 # Move data:
 # It takes an input file as input containing a dictionary of the folders to move and their new location.
 # For each subfolder to move, it will first download the files on the node, then add them to their new location on the FC and finally remove the files from the FC
-# NB: this script does not protect the genealogy of the files (yet...)
+# NB: this script does not protect the genealogy of the files or the meta-informations (yet...)
+# TODO:
+#  - add metadata
+#  - get ancestors
 # Author: M Guigue
 # Creation: Oct 10 2017
 
@@ -42,7 +45,6 @@ def main():
         print("Move_Data: Doing folder {}".format(aKey))
         aDict = theDict[aKey]
         for infile, outfile in aDict.iteritems():
-            print(infile, outfile)
             status = dirac.getFile(infile)
             if not status['OK']:
                 print("Move_Data: failed getting file ")
