@@ -15,15 +15,17 @@ import argparse
 import json
 import os
 
+# YOU SHALL NOT TOUCH THESE LINES
+from DIRAC.Core.Base import Script
+Script.parseCommandLine()
+
 from DIRAC.Interfaces.API.Dirac import Dirac
 dirac = Dirac()
-
-
+    
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
 fcc = FileCatalogClient()
 
 se = 'PNNL-HEP-SRM-SE'
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -42,47 +44,52 @@ def main():
             print(exc)
 
     for aKey in theDict.keys():
-        print("Move_Data: Doing folder {}".format(aKey))
+        print("\nMove_Data: Doing folder {}".format(aKey))
         aDict = theDict[aKey]
         for infile, outfile in aDict.iteritems():
+            print(infile,outfile)
             status = dirac.getFile(infile)
             if not status['OK']:
-                print("Move_Data: failed getting file ")
+                print("Move_Data: failed getting file {}".format(infile))
                 return
-            infilename = os.path.basename(filename)
+            infilename = os.path.basename(infile)
             if not os.path.exists(infilename):
                 print("Move_Data: file does not exist")
                 return
-            print("Move_Data: Successfully downloaded file")
+            print("Move_Data: Successfully downloaded file {}; {} exists locally".format(infile,infilename))
 
             status = dirac.addFile(outfile, infilename, se)
             if not status['OK']:
-                print("Move_Data: failed uploading file")
+                print("Move_Data: failed uploading file {} to {}".format(infilename,outfile))
                 return
-            print("Move_Data: Successfully uploaded file")
+            print("Move_Data: Successfully uploaded file {} to {}".format(infilename,outfile))
 
             status = dirac.removeFile(infile)
             if not status['OK']:
-                print("Move_Data: failed removing file on FC")
+                print("Move_Data: failed removing file {} on FC".format(infile))
                 return
-            print("Move_Data: Successfully removed file on FC")
+            print("Move_Data: Successfully removed file {} on FC".format(infile))
 
             os.remove(infilename)
             if os.path.exists(infilename):
                 print("Move_Data: file is still here")
                 return
             print("Move_Data: Successfully removed local file")
-        print('Moved_Data: making sure it is empty first')
+        print('Move_Data: making sure it is empty first')
         lfnlist = sorted([lfn for lfn in
                           fcc.findFilesByMetadata(
                               {}, path=aKey)['Value']
                           ])
-        if lfn.len() != 0:
-            print("Move_Data: folder is not empty")
+        if len(lfnlist) != 0:
+            print("Move_Data: folder {} is not empty".format(aKey))
             return
         print("Move_Data: done with this folder -> removing it")
-        fcc.removeDir(aKey)
-        print("Move_Data: removed directory")
+        status = fcc.removeDirectory(aKey)
+        if not status['OK']:
+            print("Move_Data: failed removing folder {} from FC".format(aKey))
+            return
+        print("Move_Data: removed directory {} from FC".format(aKey))
+    print("Move_data: we are done here, GG!")
 
 
 if __name__ == "__main__":

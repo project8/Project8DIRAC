@@ -9,6 +9,7 @@ echo " "; echo " "
 unset DIRAC
 
 source /cvmfs/hep.pnnl.gov/project8/katydid-2.7.0/setup_katydid.sh
+
 echo " "; echo " "
 
 echo " "; echo " "
