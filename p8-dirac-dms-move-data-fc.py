@@ -34,7 +34,7 @@ class SubmitMoveDataJobs(BaseScript):
     switches = [
         ('f:', 'filename=', 'Name of the file containing the location of the folders to move and where', 'details.yaml'),
         ('n:', 'number=', 'Number of folders to move per job', 50),
-        ('l', 'local', 'Run the jobs locally', True)
+        ('l', 'local', 'Run the jobs locally', False)
     ]
     usage = [__doc__,
              'Usage:',
@@ -99,7 +99,7 @@ class SubmitMoveDataJobs(BaseScript):
                 result = dirac.submit(j)
             gLogger.info(
                 'Job_submitter: Submission Result: {}'.format(j._toJDL()))
-            gLogger.info('Job_submitter: Jod ID: {}'.format(result['Value']))
+            gLogger.always('Job_submitter: Jod ID: {}'.format(result['Value']))
 
             gLogger.info("Cleaning up!")
             try:
