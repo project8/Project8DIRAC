@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 
-# Move data:
+# Move data_fc
+#
 # It takes an input file as input containing a dictionary of the folders to move and their new location.
 # For each subfolder to move, it will first download the files on the node, then add them to their new location on the FC and finally remove the files from the FC
 # NB: this script does not protect the genealogy of the files or the meta-informations (yet...)
 # TODO:
 #  - add metadata
 #  - get ancestors
+#
 # Author: M Guigue
 # Creation: Oct 10 2017
 
@@ -21,11 +23,12 @@ Script.parseCommandLine()
 
 from DIRAC.Interfaces.API.Dirac import Dirac
 dirac = Dirac()
-    
+
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
 fcc = FileCatalogClient()
 
 se = 'PNNL-HEP-SRM-SE'
+
 
 def main():
     parser = argparse.ArgumentParser(
@@ -47,7 +50,7 @@ def main():
         print("\nMove_Data: Doing folder {}".format(aKey))
         aDict = theDict[aKey]
         for infile, outfile in aDict.iteritems():
-            print(infile,outfile)
+            print(infile, outfile)
             status = dirac.getFile(infile)
             if not status['OK']:
                 print("Move_Data: failed getting file {}".format(infile))
@@ -56,13 +59,16 @@ def main():
             if not os.path.exists(infilename):
                 print("Move_Data: file does not exist")
                 return
-            print("Move_Data: Successfully downloaded file {}; {} exists locally".format(infile,infilename))
+            print("Move_Data: Successfully downloaded file {}; {} exists locally".format(
+                infile, infilename))
 
             status = dirac.addFile(outfile, infilename, se)
             if not status['OK']:
-                print("Move_Data: failed uploading file {} to {}".format(infilename,outfile))
+                print("Move_Data: failed uploading file {} to {}".format(
+                    infilename, outfile))
                 return
-            print("Move_Data: Successfully uploaded file {} to {}".format(infilename,outfile))
+            print("Move_Data: Successfully uploaded file {} to {}".format(
+                infilename, outfile))
 
             status = dirac.removeFile(infile)
             if not status['OK']:

@@ -1,11 +1,13 @@
 #! /usr/bin/env python
 
-# Job submitter:
+# p8-dirac-dms-move-data-fc
+#
 # Submit a job that will move files on the file catalog.
 # It takes an input file as input containing a dictionary of the folders to move and their new location.
 # It will split this file into sub-files
 # For each subfolder to move, it will first download the files on the node, then add them to their new location on the FC and finally remove the files from the FC
 # NB: this script does not protect the genealogy or metadata of the files (yet...)
+#
 # Author: M Guigue
 # Creation: Oct 10 2017
 
@@ -58,11 +60,8 @@ class SubmitMoveDataJobs(BaseScript):
         NJobs = int(len(theDict.keys()) / int(self.number)) + 1
         gLogger.info("Requires {} jobs".format(NJobs))
 
-        # Dirac().submit(j, mode='local')
-
         iItem = 0
-        # for iJob in range(0, NJobs):
-        for iJob in range(0, 1):
+        for iJob in range(0, NJobs):
             subDict = {}
             for i in range(0, int(self.number)):
                 if iItem == int(len(theDict.keys())):
@@ -116,16 +115,3 @@ class SubmitMoveDataJobs(BaseScript):
 if __name__ == "__main__":
     script = SubmitMoveDataJobs()
     script()
-
-
-# # prepare the list of input data files
-# inputdatalist = []
-# for item in item_analysis['lfn_list']:
-#     # print("Job_submitter: new item to upload {}".format(item))
-#     inputdatalist.append('LFN:{}'.format(item))
-
-# j.setInputData(inputdatalist)
-
-
-# os.remove("details.json")
-# print("details.json Removed!")
