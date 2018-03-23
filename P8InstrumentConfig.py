@@ -95,4 +95,5 @@ class P8InstrumentConfig(object):
             return ['unknown',[0]]
 
     def getCentralFrequency(self, runID):
+        #TODO
         
