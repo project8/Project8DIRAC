@@ -1,0 +1,28 @@
+#!/usr/bin/env python
+########################################################################
+# $HeadURL$
+# File :    dirac-fix-mysql-script
+# Author :  Ricardo Graciani
+########################################################################
+"""
+Fixes the mysql.server script, it requires a proper /LocalInstallation section
+"""
+__RCSID__ = "6ebd9cd (2016-01-06 13:30:10 +0100) Sbalbp <sbalbp@gmail.com>"
+#
+from DIRAC.Core.Base import Script
+Script.disableCS()
+Script.setUsageMessage( '\n'.join( [ __doc__.split( '\n' )[1],
+                                     'Usage:',
+                                     '  %s [option] ... [cfgfile]' % Script.scriptName ] ) )
+
+Script.addDefaultOptionValue( '/DIRAC/Security/UseServerCertificate', 'yes' )
+Script.addDefaultOptionValue( 'LogLevel', 'INFO' )
+Script.parseCommandLine()
+from DIRAC.FrameworkSystem.Client.ComponentInstaller import gComponentInstaller
+#
+gComponentInstaller.exitOnError = True
+#
+result = gComponentInstaller.fixMySQLScripts()
+if not result['OK']:
+  print "ERROR:", result['Message']
+  exit( -1 )

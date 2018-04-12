@@ -1,0 +1,47 @@
+#!/usr/bin/env python
+########################################################################
+# File :   dirac-agent
+# Author : Adria Casajus, Andrei Tsaregorodtsev, Stuart Paterson
+########################################################################
+__RCSID__ = "0d4741c (2015-12-11 17:26:20 +0100) FedericoStagni <fstagni@cern.ch>"
+
+"""  This is a script to launch DIRAC agents
+"""
+
+import sys
+from DIRAC.ConfigurationSystem.Client.LocalConfiguration import LocalConfiguration
+from DIRAC import gLogger
+from DIRAC.Core.Base.AgentReactor import AgentReactor
+from DIRAC.Core.Utilities.DErrno import includeExtensionErrors
+
+localCfg = LocalConfiguration()
+
+positionalArgs = localCfg.getPositionalArguments()
+if len( positionalArgs ) == 0:
+  gLogger.fatal( "You must specify which agent to run!" )
+  sys.exit( 1 )
+
+agentName = positionalArgs[0]
+localCfg.setConfigurationForAgent( agentName )
+localCfg.addMandatoryEntry( "/DIRAC/Setup" )
+localCfg.addDefaultEntry( "/DIRAC/Security/UseServerCertificate", "yes" )
+localCfg.addDefaultEntry( "LogLevel", "INFO" )
+localCfg.addDefaultEntry( "LogColor", True )
+resultDict = localCfg.loadUserData()
+if not resultDict[ 'OK' ]:
+  gLogger.error( "There were errors when loading configuration", resultDict[ 'Message' ] )
+  sys.exit( 1 )
+
+includeExtensionErrors()
+
+if len( positionalArgs ) == 1:
+  mainName = positionalArgs[0]
+else:
+  mainName = "Framework/MultiAgent"
+
+agentReactor = AgentReactor( mainName )
+result = agentReactor.loadAgentModules( positionalArgs )
+if result[ 'OK' ]:
+  agentReactor.go()
+else:
+  gLogger.error( "Error while loading agent module", result[ 'Message' ] )

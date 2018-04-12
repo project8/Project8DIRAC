@@ -1,0 +1,22 @@
+""" Class that contains client access to the job monitoring handler. """
+########################################################################
+# 45c00a2 (2014-03-27 18:50:36 +0100) Philippe Charpentier <Philippe.Charpentier@cern.ch>
+# $HeadURL$
+########################################################################
+__RCSID__ = "45c00a2 (2014-03-27 18:50:36 +0100) Philippe Charpentier <Philippe.Charpentier@cern.ch>"
+
+from DIRAC.Core.Base.Client                         import Client
+
+class JobMonitoringClient( Client ):
+
+  def __init__( self, **kwargs ):
+
+    Client.__init__( self, **kwargs )
+    self.setServer( 'WorkloadManagement/JobMonitoring' )
+    self.monitoringHandler = self._getRPC()
+
+  def traceJobParameters( self, site, localID, parameterList = None, attributeList = None, date = None, until = None ):
+    return self.monitoringHandler.traceJobParameters( site, localID, parameterList, attributeList, date, until )
+
+  def traceJobParameter( self, site, localID, parameter, date = None, until = None ):
+    return self.monitoringHandler.traceJobParameter( site, localID, parameter, date, until )
