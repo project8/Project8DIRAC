@@ -13,6 +13,7 @@ class GetAnalysisDone(BaseScript):
         Determine the analysis that have been done for a given RID (based on directories that exist)
     '''
     switches = [
+                ('', 'rid=', 'RunID to look for results', None),
                ]
     def main(self):
         from DIRAC import gLogger, exit as DIRAC_exit
