@@ -110,8 +110,6 @@ class SubmitJob(BaseScript):
         j.setDestination(info['destination'])
         j.setLogLevel(info['log_level']) 
         j.setInputSandbox([tar_sourcefolder_fname, tar_archive_script, main_analysis_script])
-        j.setOutputSandbox(['std.err', 'std.out'])
-        j.setInputData(lfnpath_list)
         # Step 1: untar the input files
         j.setExecutable(tar_archive_script)
         # Step 2: Do the main analysis
@@ -126,8 +124,10 @@ class SubmitJob(BaseScript):
             gLogger.info("Local job!")
             mode = "local"
         if mode == "local":
-            gLogger.always("Warning: local job -> no output data")
+            gLogger.always("Warning: local job -> no in/output data")
         else:
+            j.setInputData(lfnpath_list)
+            j.setOutputSandbox(['std.err', 'std.out'].extend(info['output_files']))
             j.setOutputData(info['output_files'],info['output_SE'])
 
         # submit the job
