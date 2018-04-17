@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 '''
-A Utility for submitting jobs using a convenient YAML config file.
+p8-dirac-wms-submit-job
+Author: MG
+Date: 04/16/2018
+Details: A Utility script for submitting jobs using a convenient YAML config file.
 '''
 from p8_base_script import BaseScript
 
@@ -11,7 +14,7 @@ class SubmitJob(BaseScript):
     '''
     '''
     switches = [
-                ('f:', 'filename', 'Config File to use', None),
+                ('f:', 'filename', 'YAML/JSON config file to use', None),
                 ('l', 'local', 'Run job locally', False),
                ]
     def main(self):
@@ -114,11 +117,6 @@ class SubmitJob(BaseScript):
         # Step 2: Do the main analysis
         j.setExecutable(main_analysis_script)
         # Step 3: Do the post analysis things
-        j.setOutputData(info['output_files'],info['output_SE'])
-
-
-        # submit the job
-        dirac = Dirac()
         if 'job_mode' not in info.keys():
             mode = "wms"
         else:
@@ -127,6 +125,14 @@ class SubmitJob(BaseScript):
         if self.local:
             gLogger.info("Local job!")
             mode = "local"
+        if mode == "local":
+            gLogger.always("Warning: local job -> no output data")
+        else:
+            j.setOutputData(info['output_files'],info['output_SE'])
+
+        # submit the job
+        dirac = Dirac()
+
         result = dirac.submit(j,mode=mode)
         gLogger.always("Results: \n{}".format(j._toJDL()))
 
