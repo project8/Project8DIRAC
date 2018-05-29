@@ -3,6 +3,7 @@
 # File: Project8ThreadedDataReplicateAgent.py
 # Author: Vikas.Bansal
 # Date: Jan 12, 2018
+# Updates: May 29, 2018 (M.G.)
 ########################################################################
 """ :mod: Project8ThreadedDataReplicateAgent
     ====================
@@ -59,6 +60,9 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
         
         self.maxNumberOfThreads = self.am_getOption( 'maxNumberOfThreads', self.__maxNumberOfThreads )
         self.threadPool    = ThreadPool( self.maxNumberOfThreads, self.maxNumberOfThreads )
+
+        # Extra metadata added by the user.
+        self.extraMetadata =  {"DataLevel": "RAW", "DataType": "Data"}
         
         gLogger.info('MaxFilesToTransferPerCycle: ' + str(self.MaxFilesToTransferPerCycle))
         gLogger.info('maxNumberOfThreads: ' + str(self.maxNumberOfThreads))
@@ -230,6 +234,7 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
             ### If the file contains meta data then add that info in the queue
             if lfn.endswith('_meta.json'):
                 meta_python_dict = self.__getMetaData(pfn)
+                meta_python_dict.update(self.extraMetadata)
                 toBeCopied.put( {'lfn': lfn, 'pfn': pfn, 'metaData': meta_python_dict} )
                 lfn_list.append(lfn)
                 gLogger.debug('Meta Data is %s:' %meta_python_dict)
