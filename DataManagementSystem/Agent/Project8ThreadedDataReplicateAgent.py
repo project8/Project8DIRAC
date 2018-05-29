@@ -3,6 +3,7 @@
 # File: Project8ThreadedDataReplicateAgent.py
 # Author: Vikas.Bansal
 # Date: Jan 12, 2018
+# Updates: May 29, 2018 (M.G.)
 ########################################################################
 """ :mod: Project8ThreadedDataReplicateAgent
     ====================
@@ -59,6 +60,9 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
         
         self.maxNumberOfThreads = self.am_getOption( 'maxNumberOfThreads', self.__maxNumberOfThreads )
         self.threadPool    = ThreadPool( self.maxNumberOfThreads, self.maxNumberOfThreads )
+
+        # Extra metadata added by the user.
+        self.extraMetadatas =  {"DataLevel": "RAW", "DataType": "Data"}
         
         gLogger.info('MaxFilesToTransferPerCycle: ' + str(self.MaxFilesToTransferPerCycle))
         gLogger.info('maxNumberOfThreads: ' + str(self.maxNumberOfThreads))
@@ -339,7 +343,9 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
                 if 'metaData' in file :
                     # register this metadata
                     if file['metaData']:
-                        res = self.registerDirMetaData(file[ 'lfn' ], file['metaData'])
+                        metaDataDict = file['metaData']
+                        metaDataDict.update(self.extraMetadatas)
+                        res = self.registerDirMetaData(file[ 'lfn' ], metaDataDict)
                         if not res['OK']:
                             ### If registering meta data failed, then finish the thread gracefully and go to next thread
                             self.toBeCopied.task_done()
