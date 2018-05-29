@@ -62,7 +62,7 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
         self.threadPool    = ThreadPool( self.maxNumberOfThreads, self.maxNumberOfThreads )
 
         # Extra metadata added by the user.
-        self.extraMetadatas =  {"DataLevel": "RAW", "DataType": "Data"}
+        self.extraMetadata =  {"DataLevel": "RAW", "DataType": "Data"}
         
         gLogger.info('MaxFilesToTransferPerCycle: ' + str(self.MaxFilesToTransferPerCycle))
         gLogger.info('maxNumberOfThreads: ' + str(self.maxNumberOfThreads))
@@ -234,6 +234,7 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
             ### If the file contains meta data then add that info in the queue
             if lfn.endswith('_meta.json'):
                 meta_python_dict = self.__getMetaData(pfn)
+                meta_python_dict.update(self.extraMetadata)
                 toBeCopied.put( {'lfn': lfn, 'pfn': pfn, 'metaData': meta_python_dict} )
                 lfn_list.append(lfn)
                 gLogger.debug('Meta Data is %s:' %meta_python_dict)
@@ -343,9 +344,7 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
                 if 'metaData' in file :
                     # register this metadata
                     if file['metaData']:
-                        metaDataDict = file['metaData']
-                        metaDataDict.update(self.extraMetadatas)
-                        res = self.registerDirMetaData(file[ 'lfn' ], metaDataDict)
+                        res = self.registerDirMetaData(file[ 'lfn' ], file['metaData'])
                         if not res['OK']:
                             ### If registering meta data failed, then finish the thread gracefully and go to next thread
                             self.toBeCopied.task_done()
