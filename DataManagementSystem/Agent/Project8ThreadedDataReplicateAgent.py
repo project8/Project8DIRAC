@@ -70,7 +70,7 @@ class Project8ThreadedDataReplicateAgent(AgentModule):
         self.DIRACCfgSEPath = 'Resources/StorageElements'
         self.fc = FileCatalogClient()
         
-        self.acceptableFileSuffix = ['.mat', '.MAT', '.egg', '_meta.json', '.msk', '.Setup', '.json', '_snapshot.json']
+        self.acceptableFileSuffix = ['.mat', '.MAT', '.egg', '_meta.json', '.msk', '.Setup', '.json', '_snapshot.json', '.yaml']
         
         return S_OK()
 

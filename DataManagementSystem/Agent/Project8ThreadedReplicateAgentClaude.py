@@ -199,7 +199,8 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         ### Define job parameter values here
         _site = 'DIRAC.PNNL.us'
         _cputime = 1000
-        _outputSE = 'PNNL-HEP-SRM-SE'
+#        _outputSE = 'PNNL-HEP-SRM-SE'
+        _outputSE = 'PNNL-PIC-SRM-SE'
         ### For ESR
         _sh_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/esr.sh'
         _py_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/esr.py'
