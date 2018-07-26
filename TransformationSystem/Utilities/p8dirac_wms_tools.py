@@ -88,9 +88,12 @@ def uploadJobOutputROOT(software_tag, config_tag):
 
     # Upload gain file
     gain_pfn = os.getcwd() + '/GainVariation.root'
+    tmp = dirname.split('/data/')
     gain_lfn = os.path.join(
-            dirname.replace('data', 'ts_prod'),
-            'Katydid_%s/Termite_%s/Processed/root' % (software_tag, config_tag),
+            tmp[0],
+            'ts_prod',
+            'katydid_%s/termite_%s/processed/root' % (software_tag, config_tag),
+            tmp[1],
             basename.replace('.egg', '_gain.root'))
     res = dirac.addFile(gain_lfn, gain_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
@@ -101,8 +104,8 @@ def uploadJobOutputROOT(software_tag, config_tag):
     # Add metadata to gain file
     gain_metadata = {
             'DataType': 'Data', 'DataLevel': 'Processed',
-            'SoftwareVersion': 'Katydid_%s' % software_tag,
-            'ConfigVersion': 'Termite_%s' % config_tag,
+            'SoftwareVersion': 'katydid_%s' % software_tag,
+            'ConfigVersion': 'termite_%s' % config_tag,
             'DataExt': 'root', 'DataFlavor': 'Gain'}
     res = fc.setMetadata(gain_lfn, gain_metadata)
     if not res['OK']:
@@ -113,8 +116,10 @@ def uploadJobOutputROOT(software_tag, config_tag):
     # Upload event file
     event_pfn = os.getcwd() + '/TracksAndEvents.root'
     event_lfn = os.path.join(
-            dirname.replace('data', 'ts_prod'),
-            'Katydid_%s/Termite_%s/Processed/root' % (software_tag, config_tag),
+            tmp[0],
+            'ts_prod',
+            'katydid_%s/termite_%s/processed/root' % (software_tag, config_tag),
+            tmp[1],
             basename.replace('.egg', '_event.root'))
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
@@ -125,8 +130,8 @@ def uploadJobOutputROOT(software_tag, config_tag):
     # Add metadata to event file
     event_metadata = {
             'DataType': 'Data', 'DataLevel': 'Processed',
-            'SoftwareVersion': 'Katydid_%s' % software_tag,
-            'ConfigVersion': 'Termite_%s' % config_tag,
+            'SoftwareVersion': 'katydid_%s' % software_tag,
+            'ConfigVersion': 'termite_%s' % config_tag,
             'DataExt': 'root', 'DataFlavor': 'Event'}
     res = fc.setMetadata(event_lfn, event_metadata)
     if not res['OK']:
