@@ -18,7 +18,7 @@ from DIRAC.TransformationSystem.Client.TransformationClient \
 import subprocess
 from datetime import datetime
 
-PATH_TO_SANDBOX = ('/project8/user/s/schram1012/production/transTest/'
+PATH_TO_SANDBOX = ('/project8/user/a/aledesma/transTest/'
                    'Katydid_%s/Termite_%s/Scripts')
 
 class P8Transformation(Transformation):
@@ -87,6 +87,9 @@ class P8Transformation(Transformation):
                 path_to_sandbox,'Katydid_%s.sh' % self.software_tag)
         print('katydid_file: %s\n' % katydid_file)
         print('katydid contents:\n%s\n' % script)
+        res = dirac.removeFile(katydid_file) # First remove it
+        if not res['OK']:
+            return res
         res = dirac.addFile(katydid_file, script_name, PROD_DEST_DATA_SE)
         # Regardless of if the file was uploaded successfully, remove the temp file
         subprocess.check_call('rm %s' % script_name, shell=True)
@@ -109,13 +112,16 @@ class P8Transformation(Transformation):
         # TODO: do a git checkout tags/<tag> to get the specific tools tag
 
         # Upload tools file
-        tools_file = os.path.join(path_to_sandbox, 'p8_wms_tools.py')
+        tools_file = os.path.join(path_to_sandbox, 'p8dirac_wms_tools.py')
         print('tools_file: %s\n' % tools_file)
+        res = dirac.removeFile(tools_file)
+        if not res['OK']:
+            return res
         res = dirac.addFile(
                 tools_file,
                 os.path.join(
                     tmp_dir,
-                    'TransformationSystem/Utilities/p8_wms_tools.py'),
+                    'TransformationSystem/Utilities/p8dirac_wms_tools.py'),
                 PROD_DEST_DATA_SE)
 
         # Remove the tools file regardless of if the file was uploaded successfully
@@ -142,12 +148,15 @@ class P8Transformation(Transformation):
 
         # Set other parameters of this transformation
         self.setTransformationName(
-                'Test-Katydid_%s-Termite_%s' % (self.software_tag, self.config_tag))
+                'Test-Katydid_%s-Termite_%s'
+                % (self.software_tag, self.config_tag))
         self.setTransformationGroup('KatydidMetadataProcess')
         self.setType('DataReprocessing')
-        self.setDescription('Transformation used to automatically process RAW data')
-        self.setLongDescription('Transformation use to autmatically process RAW'
-                                'data. Triggered using the metadata fields.')
+        self.setDescription(
+                'Transformation used to automatically process RAW data')
+        self.setLongDescription(
+                'Transformation use to autmatically process RAW data. '
+                'Triggered using the metadata fields.')
         self.setMaxNumberOfTasks(0)
         self.setBody(self.j.workflow.toXML())
         self.setPlugin('P8FilterForRAWData')
