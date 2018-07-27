@@ -18,8 +18,7 @@ from DIRAC.TransformationSystem.Client.TransformationClient \
 import subprocess
 from datetime import datetime
 
-PATH_TO_SANDBOX = ('/project8/user/a/aledesma/transTest/'
-                   'Katydid_%s/Termite_%s/Scripts')
+PATH_TO_SANDBOX = ('/project8/dirac/ts_prod/katydid_%s/termite_%s/scripts')
 
 class P8Transformation(Transformation):
     def __init__(self, transID=0, transClient=None,
@@ -77,14 +76,14 @@ class P8Transformation(Transformation):
                 'python -c "import p8dirac_wms_tools as tools; '
                 'print(tools.uploadJobOutputROOT(\'%s\', \'%s\'))"'
                 % (self.software_tag, self.software_tag, self.config_tag))
-        script_name = os.path.join(cwd, 'Katydid_%s.sh' % self.software_tag)
+        script_name = os.path.join(cwd, 'katydid_%s.sh' % self.software_tag)
         f = open(script_name, 'w+')
         f.write(script)
         f.close()
 
         # Upload Katydid script
         katydid_file = os.path.join(
-                path_to_sandbox,'Katydid_%s.sh' % self.software_tag)
+                path_to_sandbox,'katydid_%s.sh' % self.software_tag)
         print('katydid_file: %s\n' % katydid_file)
         print('katydid contents:\n%s\n' % script)
         res = dirac.removeFile(katydid_file) # First remove it
@@ -139,16 +138,16 @@ class P8Transformation(Transformation):
                  'LFN:%s' % katydid_file,
                  'LFN:%s' % tools_file])
         self.j.setExecutable(
-                os.path.basename(katydid_file), # Can I do it this way.
-                arguments=os.path.basename(config_file))
+                './' + os.path.basename(katydid_file),
+                arguments=os.path.basename(cfg_file))
         self.j.setCPUTime(1000)
         self.j.setOutputSandbox(['env.txt', '*log', '*info*', '*xml*', '*json'])
         self.j.setName(
-                'Katydid_%s-Termite_%s' % (self.software_tag, self.config_tag))
+                'katydid_%s-termite_%s' % (self.software_tag, self.config_tag))
 
         # Set other parameters of this transformation
         self.setTransformationName(
-                'Test-Katydid_%s-Termite_%s'
+                'test-katydid_%s-termite_%s'
                 % (self.software_tag, self.config_tag))
         self.setTransformationGroup('KatydidMetadataProcess')
         self.setType('DataReprocessing')
