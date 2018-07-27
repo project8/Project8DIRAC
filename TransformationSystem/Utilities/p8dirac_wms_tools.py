@@ -46,7 +46,7 @@ def getJobLFN():
     # Try to extract the input LFN
     lfns = []
     try:
-        lfn = results['Value'][jobID]
+        lfn = res['Value'][jobID]
     except ValueError:
         print('Failed to extract lfn information')
         sys.exit(-9)
