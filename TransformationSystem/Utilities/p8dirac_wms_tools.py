@@ -46,18 +46,18 @@ def getJobLFN():
     # Try to extract the input LFN
     lfns = []
     try:
-        lfn = res['Value'][jobID]
+        lfns = res['Value'][jobID]
     except ValueError:
         print('Failed to extract lfn information')
         sys.exit(-9)
 
     # Make sure there's only 1 LFN
-    if not len(lfn) == 1:
+    if not len(lfns) == 1:
         print('Incorrect number of files')
         sys.exit(-9)
 
     # Create input lfn/filename
-    input_lfn = lfn[0].replace('LFN:', '')
+    input_lfn = lfns[0].replace('LFN:', '')
     return input_lfn
 
 def getJobFileName():
