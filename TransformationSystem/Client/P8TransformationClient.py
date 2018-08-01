@@ -29,29 +29,61 @@ class P8Transformation(Transformation):
             raise Exception('Must provide software and config tags')
         self.software_tag = software_tag
         self.config_tag = config_tag
-
-    def buildTransformation(self):
-        path_to_sandbox = PATH_TO_SANDBOX % (self.software_tag, self.config_tag)
-        # Use DIRAC Operation config
+        self.path_to_sandbox = (PATH_TO_SANDBOX
+                % (self.software_tag, self.config_tag))
+        self.dirac = Dirac()
         ops_dict = Operations().getOptionsDict('Transformations/')
         if not ops_dict['OK']:
-            return ops_dict
+            raise Exception(ops_dict['Message'])
         ops_dict = ops_dict['Value']
-        PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
-        PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
+        self.PROD_DEST_DATA_SE = ops_dict.get(
+                'ProdDestDataSE', 'PNNL-PIC-SRM-SE')
+        self.PROD_DEST_MONITORING_SE = ops_dict.get(
+                'ProdDestMonitoringSE', '')
 
-        try:
-            dirac = Dirac()
-        except Exception:
-            return S_ERROR('Failed to initialize Dirac object')
+    def _uploadToolsFile(self):
+        # Get the tools file from the repository
+        tmp_dir = os.path.join(
+                os.getcwd(),
+                'p8_%s' % datetime.now().strftime('%Y-%m-%d_%H%M%S'))
+        print('repo_dir: %s\n' % tmp_dir)
+        cmd = 'git clone https://github.com/project8/Project8DIRAC.git %s'
+        subprocess.check_call(cmd % tmp_dir, shell=True)
+        os.chdir(tmp_dir) # temporary due to branch change
+        cmd = 'git checkout origin/transformation-work -b transformation-work'
+        subprocess.check_call(cmd, shell=True)
+        # TODO: git checkout tags/<tag> to get specific tools tag?
 
+        # Upload the tools file
+        tools_file = os.path.join(self.path_to_sandbox, 'p8dirac_wms_tools.py')
+        print('tools_file: %s\n' % tools_file)
+        res = self.dirac.removeFile(tools_file)
+        if not res['OK']:
+            return res
+        res = self.dirac.addFile(
+                tools_file,
+                os.path.join(
+                    tmp_dir,
+                    'TransformationSystem/Utilities/p8dirac_wms_tools.py'),
+                self.PROD_DEST_DATA_SE)
+
+        # Remove the local tools file
+        os.chdir(os.path.dirname(tmp_dir))
+        subprocess.check_call('rm -rf %s' % tmp_dir, shell=True)
+
+        if not res['OK']:
+            return res
+        return S_OK(tools_file)
+
+    def buildProcessTransformation(self):
         cwd = os.getcwd()
 
         # Try to get the configuration file and if that doesn't work, then
         # quit out.
-        cfg_file = os.path.join(path_to_sandbox, 'Katydid_ROACH_Config.yaml')
+        cfg_file = os.path.join(
+                self.path_to_sandbox, 'Katydid_ROACH_Config.yaml')
         print('cfg_file: %s\n' % cfg_file)
-        res = dirac.getFile(cfg_file)
+        res = self.dirac.getFile(cfg_file)
         if not res['OK']:
             return res
         if cfg_file in res['Value']['Failed']:
@@ -59,7 +91,8 @@ class P8Transformation(Transformation):
                     % (cfg_file, res['Value']['Failed'][cfg_file]))
 
         # The config file exists, so we can proceed.
-        # Remove it, since getFile actually retrieves it, and we don't need it here.
+        # Remove it, since getFile actually retrieves it, and we don't
+        # need it here.
         subprocess.check_call('rm ./Katydid_ROACH_Config.yaml', shell=True)
 
         # Create Katydid script
@@ -69,7 +102,7 @@ class P8Transformation(Transformation):
                 'unset DIRAC\n'
                 'P8_INPUT_FILE=`python -c \'import p8dirac_wms_tools as tools; '
                 'print(tools.getJobFileName())\'`\n'
-                'source /cvmfs/hep.pnnl.gov/project8/katydid/%s/setup.sh\n' # is this path ok?
+                'source /cvmfs/hep.pnnl.gov/project8/katydid/%s/setup.sh\n'
                 'Katydid -c ${CFGFILE} -e ${P8_INPUT_FILE}\n'
                 'ls -l\n'
                 'source /cvmfs/hep.pnnl.gov/project8/dirac_client_current/bashrc\n'
@@ -83,52 +116,25 @@ class P8Transformation(Transformation):
 
         # Upload Katydid script
         katydid_file = os.path.join(
-                path_to_sandbox,'katydid_%s.sh' % self.software_tag)
+                self.path_to_sandbox,'katydid_%s.sh' % self.software_tag)
         print('katydid_file: %s\n' % katydid_file)
         print('katydid contents:\n%s\n' % script)
-        res = dirac.removeFile(katydid_file) # First remove it
+        res = self.dirac.removeFile(katydid_file) # First remove it
         if not res['OK']:
             return res
-        res = dirac.addFile(katydid_file, script_name, PROD_DEST_DATA_SE)
+        res = self.dirac.addFile(
+                katydid_file, script_name, self.PROD_DEST_DATA_SE)
         # Regardless of if the file was uploaded successfully, remove the temp file
         subprocess.check_call('rm %s' % script_name, shell=True)
         # Now check if the file was uploaded successfully
         if not res['OK']:
           return res
-
-        # Get the tools file from the repo
-        tmp_dir = os.path.join(
-            cwd, 'p8_%s' % datetime.now().strftime('%Y-%m-%d_%H%M%S'))
-        print('repo_dir: %s\n' % tmp_dir)
-        subprocess.check_call(
-                'git clone https://github.com/project8/Project8DIRAC.git %s'
-                % tmp_dir, shell=True)
-        os.chdir(tmp_dir) # temporary due to branch change
-        subprocess.check_call(
-                'git checkout origin/transformation-work -b transformation-work',
-                shell=True)
-
-        # TODO: do a git checkout tags/<tag> to get the specific tools tag
-
-        # Upload tools file
-        tools_file = os.path.join(path_to_sandbox, 'p8dirac_wms_tools.py')
-        print('tools_file: %s\n' % tools_file)
-        res = dirac.removeFile(tools_file)
+       
+        # Upload the tools file
+        res = self._uploadToolsFile()
         if not res['OK']:
             return res
-        res = dirac.addFile(
-                tools_file,
-                os.path.join(
-                    tmp_dir,
-                    'TransformationSystem/Utilities/p8dirac_wms_tools.py'),
-                PROD_DEST_DATA_SE)
-
-        # Remove the tools file regardless of if the file was uploaded successfully
-        os.chdir(os.path.dirname(tmp_dir))
-        subprocess.check_call('rm -rf %s' % tmp_dir, shell=True)
-
-        if not res['OK']:
-          return res
+        tools_file = res['Value']
 
         # Create a job and use the files we just uploaded as the input sandbox
 
@@ -170,3 +176,50 @@ class P8Transformation(Transformation):
                 tid['Value'],
                 {'DataLevel': 'RAW', 'DataType': 'Data', 'run_id': '6935'}) # run_id is temporary for testing
         return S_OK(tid['Value'])
+
+    def buildMergeTransformation(self):
+        cwd = os.getcwd()
+
+        # Create p8dirac_postprocessing.sh script
+        script = (
+                '#!/bin/bash\n'
+                'echo "hostname:" `/bin/hostname`\n'
+                'echo " "; echo " "\n'
+                'unset DIRAC\n'
+                'echo "Sourcing Dirac"\n'
+                'source /cvmfs/hep.pnnl.gov/project8/katydid/%s/setup.sh\n'
+                'echo " "; echo " "\n'
+                'echo "Creating json details file"\n'
+                'JSON_DUMP=`python -c \'import p8dirac_wms_tools as tools; '
+                'print(tools.createDetails())\'`\n'
+                'echo "Executing python p8dirac_postprocessing.py"\n'
+                'python p8dirac_postprocessing.py $JSON_DUMP\n'
+                'echo "Notifying slack of completed analysis"\n'
+                'python slack_post.py $JSON_DUMP\n'
+                % self.software_tag)
+        script_name = os.path.join(cwd, 'p8dirac_postprocessing.sh')
+        f = open(script_name, 'w+')
+        f.write(script)
+        f.close()
+
+        # Upload p8dirac_postprocessing.sh script
+        postproc_file = os.path.join(
+                self.path_to_sandbox, 'p8dirac_postprocessing.sh')
+        print('post_processing file: %s\n' % postproc_file)
+        print('post_processing contents:\n%s\n' % script)
+        res = self.dirac.removeFile(postproc_file) # First remove it
+        if not res['OK']:
+            return res
+        res = self.dirac.addFile(
+                postproc_file, script_name, self.PROD_DEST_DATA_SE)
+        # Regardless of if the file was uploaded successfully, remove the temp
+        subprocess.check_call('rm %s' % script_name, shell=True)
+        # Now check if file was uploaded successfully
+        if not res['OK']:
+           return res
+        
+        res = self._uploadToolsFile()
+        if not res['OK']:
+            return res
+        tools_file = res['Value']
+        return S_OK()
