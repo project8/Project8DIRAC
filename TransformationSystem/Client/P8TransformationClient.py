@@ -32,6 +32,7 @@ class P8Transformation(Transformation):
         self.path_to_sandbox = (PATH_TO_SANDBOX
                 % (self.software_tag, self.config_tag))
         self.dirac = Dirac()
+        self.fc = FileCatalogClient()
         ops_dict = Operations().getOptionsDict('Transformations/')
         if not ops_dict['OK']:
             raise Exception(ops_dict['Message'])
@@ -75,6 +76,16 @@ class P8Transformation(Transformation):
             return res
         return S_OK(tools_file)
 
+    def _isUploaded(self, lfn):
+        # Verify that a file is in the file catalog
+        res = self.fc.getFileSize(lfn) # better way to check?
+        if not res['OK']:
+            return res
+        if not res['Value']['Successful'].get(lfn):
+            return S_ERROR('%s is not uploaded' % lfn)
+        return S_OK()
+
+
     def buildProcessTransformation(self):
         cwd = os.getcwd()
 
@@ -83,17 +94,9 @@ class P8Transformation(Transformation):
         cfg_file = os.path.join(
                 self.path_to_sandbox, 'Katydid_ROACH_Config.yaml')
         print('cfg_file: %s\n' % cfg_file)
-        res = self.dirac.getFile(cfg_file)
+        res = self._isUploaded(cfg_file)
         if not res['OK']:
             return res
-        if cfg_file in res['Value']['Failed']:
-            return S_ERROR('Config file must be uploaded to %s. %s'
-                    % (cfg_file, res['Value']['Failed'][cfg_file]))
-
-        # The config file exists, so we can proceed.
-        # Remove it, since getFile actually retrieves it, and we don't
-        # need it here.
-        subprocess.check_call('rm ./Katydid_ROACH_Config.yaml', shell=True)
 
         # Create Katydid script
         script = (
@@ -196,6 +199,7 @@ class P8Transformation(Transformation):
                 'python p8dirac_postprocessing.py $JSON_DUMP\n'
                 'echo "Notifying slack of completed analysis"\n'
                 'python slack_post.py $JSON_DUMP\n'
+                'rm $JSON_DUMP\n' # remove the temp file
                 % self.software_tag)
         script_name = os.path.join(cwd, 'p8dirac_postprocessing.sh')
         f = open(script_name, 'w+')
@@ -218,8 +222,80 @@ class P8Transformation(Transformation):
         if not res['OK']:
            return res
         
+        # Upload the tools file
         res = self._uploadToolsFile()
         if not res['OK']:
             return res
         tools_file = res['Value']
-        return S_OK()
+
+        # Make sure the other ladybug files are uploaded
+        post_procpy = os.path.join(self.path_to_sandbox, 'postprocessing.py')
+        slack_postpy = os.path.join(self.path_to_sandbox, 'slack_post.py')
+        safe_accesspy = os.path.join(
+                self.path_to_sandbox, 'p8dirac_safe_access.py')
+        p8dirac_postprocpy = os.path.join(
+                self.path_to_sandbox, 'p8dirac_postprocessing.py')
+
+        res = self._isUploaded(post_procpy)
+        if not res['OK']:
+            return res
+        res = self._isUploaded(slack_postpy)
+        if not res['OK']:
+            return res
+        res = self._isUploaded(safe_accesspy)
+        if not res['OK']:
+            return res
+        res = self._isUploaded(p8dirac_postprocpy)
+        if not res['OK']:
+            return res
+
+        # NOTE: Everything below is untested.
+        # Create the job (adapted from p8dirac_jobsubmitter.py)
+        self.j = Job()
+        self.j.setCPUTime(3000)
+        # no arguments now
+        self.j.setExecutable('./%s' % os.path.basename(postproc_file))
+        self.j.setName('postprocessing-katydid_%s-termite_%s'
+                % (self.software_tag, self.config_tag))
+        self.j.setDestination('DIRAC.PNNL.us') # FIXME!!!
+        self.j.setLogLevel('debug')
+        self.j.setInputSandbox(
+                ['LFN:%s' % postproc_file,
+                 'LFN:%s' % tools_file,
+                 'LFN:%s' % post_procpy,
+                 'LFN:%s' % slack_postpy,
+                 'LFN:%s' % safe_accesspy,
+                 'LFN:%s' % p8dirac_postprocpy])
+        self.j.setOutputSandbox(['std.err', 'std.out'])
+
+        # Set other parameters of this transformation
+        # TODO: VERIFY THESE ARE CORRECT
+        self.setTransformationName(
+                'test-katydid_%s-termite_%s-merge'
+                % (self.software_tag, self.config_tag))
+        self.setTransformationGroup('KatydidMetadataProcess') # is this right?
+        self.setType('DataReprocessing') # is this right?
+        self.setDescription(
+                'Transformation used to automatically merge processed data')
+        self.setLongDescription(
+                'Transformation used to automatically merge processed data. '
+                'Triggered using metadata fields.')
+        self.setMaxNumberOfTasks(0)
+        self.setBody(self.j.workflow.toXML())
+        self.setPlugin('P8Merge') # TODO
+        self.setGroupSize(1) # is this right?
+        self.addTransformation()
+        self.setStatus('Active')
+        self.setAgentType('Automatic')
+        tid = self.getTransformationID()
+        if not tid['OK']:
+            return tid
+        self.transClient.createTransformationInputDataQuery(
+                tid['Value'],
+                {'DataLevel': 'Processed',
+                 'DataType': 'Data',
+                 'SoftwareVersion': 'katydid_%s' % self.software_tag,
+                 'ConfigVersion': 'termite_%s' % self.config_tag,
+                 'DataExt': 'root',
+                 'DataFlavor': 'Event'})
+        return S_OK(tid['Value'])
