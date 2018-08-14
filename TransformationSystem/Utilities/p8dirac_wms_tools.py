@@ -101,10 +101,22 @@ def uploadJobOutputROOT(software_tag, config_tag):
         print('Failed to upload gain file: %s' % res['Message'])
         sys.exit(-9)
     print('Gain file uploaded: %s' % gain_lfn)
+    
+    # Get the run_id
+    metadata = fc.getFileUserMetadata(input_lfn)
+
+    if not metadata['OK']:
+       print('Failed to retrieve metadata for %s: %s' % (lfn, metadata['Message']))
+       continue
+
+    if not metadata['Value'].get('run_id'):
+       print('No run_id for %s' % lfn)
+       continue
+    run_id = metadata['Value']['run_id']
 
     # Add metadata to gain file
     gain_metadata = {
-            'DataType': 'Data', 'DataLevel': 'Processed',
+            'run_id': '%s' % run_id, 'DataType': 'Data', 'DataLevel': 'Processed',
             'SoftwareVersion': 'katydid_%s' % software_tag,
             'ConfigVersion': 'termite_%s' % config_tag,
             'DataExt': 'root', 'DataFlavor': 'Gain'}
