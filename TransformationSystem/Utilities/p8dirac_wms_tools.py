@@ -117,7 +117,7 @@ def uploadJobOutputROOT(software_tag, config_tag):
 
     # Add metadata to gain file
     gain_metadata = {
-            'run_id': '%s' % run_id, 'DataType': 'Data', 'DataLevel': 'Processed',
+            'run_id': run_id, 'DataType': 'Data', 'DataLevel': 'Processed',
             'SoftwareVersion': 'katydid_%s' % software_tag,
             'ConfigVersion': 'termite_%s' % config_tag,
             'DataExt': 'root', 'DataFlavor': 'Gain'}
