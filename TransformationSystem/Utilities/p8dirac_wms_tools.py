@@ -81,46 +81,18 @@ def uploadJobOutputROOT(software_tag, config_tag):
     dirname = os.path.dirname(input_lfn)
     basename = os.path.basename(input_lfn)
     
-    # Data Type
+    #################################
+    ## Create directory structures ##
+    #################################
     datatype_dir = dirname.replace('data', 'ts_processed')
-    datatype_metadata = {'DataType': 'data', 'DataLevel': 'processed'}
-    res = fc.setMetadata(datatype_dir, datatype_metadata)
-    if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s'
-                % (datatype_dir, datatype_metadata))
-        sys.exit(-9)                               
-    
-    # All ancestor metadata
-    ancestors = fc.getFileAncestors(input_lfn, 1)
-    res = fc.getFileUserMetadata(ancestors['Value']['Successful'].keys()[0])    
-    if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s'
-                % (run_id_dir, run_id_metadata))
-        sys.exit(-9)  
-    metadata_all = res['Value']
-    if 'DataLevel' in metadata_all.keys():
-        metadata_all.pop('DataLevel')
-    res = fc.setMetadata(datatype_dir, metadata_all)                           
-
-    # Software
     software_dir = os.path.join(datatype_dir, '/katydid_%s' % software_tag)                
-    software_metadata = {'SoftwareVersion': 'katydid_%s' % software_tag}
-    res = fc.setMetadata(software_dir, software_metadata)
-    if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s'
-                % (software_dir, software_metadata))
-        sys.exit(-9)                            
-        
-    # Config
     config_dir = os.path.join(software_dir, '/termite_%s' % config_tag)                                  
-    config_metadata = {'ConfigVersion': 'termite_%s' % config_tag}
-    res = fc.setMetadata(config_dir, config_metadata)
-    if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s'
-                % (config_dir, config_metadata))
-        sys.exit(-9)  
 
-    # Upload event file
+    ###########################
+    ## Upload new data files ##
+    ###########################
+    
+    # Event file
     event_pfn = os.getcwd() + '/TracksAndEvents.root'
     event_lfn = os.path.join(config_dir, basename.replace('.egg', '_event.root'))    
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
@@ -135,7 +107,7 @@ def uploadJobOutputROOT(software_tag, config_tag):
                 % (event_lfn, event_metadata))
         sys.exit(-9) 
 
-    # Upload gain file
+    # Gain file
     gain_pfn = os.getcwd() + '/GainVariation.root'
     gain_lfn = os.path.join(config_dir, basename.replace('.egg', '_gain.root'))    
     res = dirac.addFile(gain_lfn, gain_pfn, PROD_DEST_DATA_SE)
@@ -155,8 +127,50 @@ def uploadJobOutputROOT(software_tag, config_tag):
         print('Failed to register metadata to LFN %s: %s'
                 % (gain_file, gain_metadata))
         sys.exit(-9) 
+        
+    ################################
+    ## Setting directory metadata ##
+    ################################
+   
+    # Data Type
+    datatype_metadata = {'DataType': 'data', 'DataLevel': 'processed'}
+    res = fc.setMetadata(datatype_dir, datatype_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (datatype_dir, datatype_metadata))
+        sys.exit(-9)  
+        
+    # All ancestor metadata
+    ancestors = fc.getFileAncestors(input_lfn, 1)
+    res = fc.getFileUserMetadata(ancestors['Value']['Successful'].keys()[0])    
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (run_id_dir, run_id_metadata))
+        sys.exit(-9)  
+    metadata_all = res['Value']
+    if 'DataLevel' in metadata_all.keys():
+        metadata_all.pop('DataLevel')
+    res = fc.setMetadata(datatype_dir, metadata_all)                           
 
-    # Add ancestry
+    # Software
+    software_metadata = {'SoftwareVersion': 'katydid_%s' % software_tag}
+    res = fc.setMetadata(software_dir, software_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (software_dir, software_metadata))
+        sys.exit(-9)                            
+        
+    # Config
+    config_metadata = {'ConfigVersion': 'termite_%s' % config_tag}
+    res = fc.setMetadata(config_dir, config_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (config_dir, config_metadata))
+        sys.exit(-9)  
+
+    #################
+    ## Add ancestry ##
+    #################
     ancestry_dict = {}
     ancestry_dict[gain_lfn] = {'Ancestors': input_lfn}
     ancestry_dict[event_lfn] = {'Ancestors': input_lfn}
