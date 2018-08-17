@@ -80,91 +80,81 @@ def uploadJobOutputROOT(software_tag, config_tag):
     input_lfn = getJobLFN()
     dirname = os.path.dirname(input_lfn)
     basename = os.path.basename(input_lfn)
-
-    # Upload context file. Antonio: does this need to be done?
-    #output_cfg_lfn = os.path.join(dirname.replace('data', 'ts_prod'),
-    #        'katydid_v2.11.0/cfg', basename.replace('.egg', '.yaml'))
-    #output_cfg_pfn = os.getcwd() + '/Katydid_ROACH_Config.yaml'
-    #res = dirac.addFile(output_cfg_lfn, output_cfg_pfn, PROD_DEST_DATA_SE)
-
-    # Upload gain file
-    gain_pfn = os.getcwd() + '/GainVariation.root'
-    tmp = dirname.split('/data/')
-    gain_lfn = os.path.join(
-            tmp[0],
-            'ts_prod',
-            'katydid_%s/termite_%s/processed/root' % (software_tag, config_tag),
-            tmp[1],
-            basename.replace('.egg', '_gain.root'))
-    res = dirac.addFile(gain_lfn, gain_pfn, PROD_DEST_DATA_SE)
-    if not res['OK']:
-        print('Failed to upload gain file: %s' % res['Message'])
-        sys.exit(-9)
-    print('Gain file uploaded: %s' % gain_lfn)
     
-    # Get the run_id
-    ancestors = fc.getFileAncestors(input_lfn, 1)
-    metadata = fc.getFileUserMetadata(ancestors['Value']['Successful'].keys()[0]) #UserMetadata(lfn)
-
-    if not metadata['OK']:
-       print('Failed to retrieve metadata for %s: %s' % (lfn, metadata['Message']))
-       continue
-
-    if not metadata['Value'].get('run_id'):
-       print('No run_id for %s' % lfn)
-       continue
-    run_id = metadata['Value']['run_id']
-
-    # Add metadata to gain file
-    gain_metadata = {
-            'run_id': run_id, 'DataType': 'Data', 'DataLevel': 'Processed',
-            'SoftwareVersion': 'katydid_%s' % software_tag,
-            'ConfigVersion': 'termite_%s' % config_tag,
-            'DataExt': 'root', 'DataFlavor': 'Gain'}
-    res = fc.setMetadata(gain_lfn, gain_metadata)
+    # Data Type
+    datatype_dir = dirname.replace('data', 'ts_processed')
+    datatype_metadata = {'DataType': 'data', 'DataLevel': 'processed'}
+    res = fc.setMetadata(datatype_dir, datatype_metadata)
     if not res['OK']:
         print('Failed to register metadata to LFN %s: %s'
-                % (gain_lfn, gain_metadata))
-        sys.exit(-9)
+                % (datatype_dir, datatype_metadata))
+        sys.exit(-9)                               
+    
+    # All ancestor metadata
+    ancestors = fc.getFileAncestors(input_lfn, 1)
+    res = fc.getFileUserMetadata(ancestors['Value']['Successful'].keys()[0])    
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (run_id_dir, run_id_metadata))
+        sys.exit(-9)  
+    metadata_all = res['Value']
+    if 'DataLevel' in metadata_all.keys():
+        metadata_all.pop('DataLevel')
+    res = fc.setMetadata(datatype_dir, metadata_all)                           
+
+    # Software
+    software_dir = os.path.join(datatype_dir, '/katydid_%s' % software_tag)                
+    software_metadata = {'SoftwareVersion': 'katydid_%s' % software_tag}
+    res = fc.setMetadata(software_dir, software_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (software_dir, software_metadata))
+        sys.exit(-9)                            
+        
+    # Config
+    config_dir = os.path.join(software_dir, '/termite_%s' % config_tag)                                  
+    config_metadata = {'ConfigVersion': 'termite_%s' % config_tag}
+    res = fc.setMetadata(config_dir, config_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (config_dir, config_metadata))
+        sys.exit(-9)  
 
     # Upload event file
     event_pfn = os.getcwd() + '/TracksAndEvents.root'
-    event_lfn = os.path.join(
-            tmp[0],
-            'ts_prod',
-            'katydid_%s/termite_%s/processed/root' % (software_tag, config_tag),
-            tmp[1],
-            basename.replace('.egg', '_event.root'))
+    event_lfn = os.path.join(config_dir, basename.replace('.egg', '_event.root'))    
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
         print('Failed to upload event file: %s' % res['Message'])
         sys.exit(-9)
     print('Event file uploaded: %s' % event_lfn)
-
-    # Get the run_id
-    ancestors = fc.getFileAncestors(input_lfn, 1)
-    metadata = fc.getFileUserMetadata(ancestors['Value']['Successful'].keys()[0]) #UserMetadata(lfn)
-
-    if not metadata['OK']:
-       print('Failed to retrieve metadata for %s: %s' % (lfn, metadata['Message']))
-       continue
-
-    if not metadata['Value'].get('run_id'):
-       print('No run_id for %s' % lfn)
-       continue
-    run_id = metadata['Value']['run_id']
-    
-    # Add metadata to event file
-    event_metadata = {
-            'run_id': run_id, 'DataType': 'Data', 'DataLevel': 'Processed',
-            'SoftwareVersion': 'katydid_%s' % software_tag,
-            'ConfigVersion': 'termite_%s' % config_tag,
-            'DataExt': 'root', 'DataFlavor': 'Event'}
+    event_metadata = {'DataExt': 'root', 'DataFlavor': 'event'}
     res = fc.setMetadata(event_lfn, event_metadata)
     if not res['OK']:
         print('Failed to register metadata to LFN %s: %s'
                 % (event_lfn, event_metadata))
+        sys.exit(-9) 
+
+    # Upload gain file
+    gain_pfn = os.getcwd() + '/GainVariation.root'
+    gain_lfn = os.path.join(config_dir, basename.replace('.egg', '_gain.root'))    
+    res = dirac.addFile(gain_lfn, gain_pfn, PROD_DEST_DATA_SE)
+    if not res['OK']:
+        print('Failed to upload gain file: %s' % res['Message'])
         sys.exit(-9)
+    print('Gain file uploaded: %s' % gain_lfn)
+    gain_metadata = {'DataExt': 'root', 'DataFlavor': 'gain'}
+    res = fc.setMetadata(gain_lfn, gain_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (gain_lfn, gain_metadata))
+        sys.exit(-9) 
+    gain_metadata = {'DataExt': 'root', 'DataFlavor': 'gain'}
+    res = fc.setMetadata(gain_file, gain_metadata)
+    if not res['OK']:
+        print('Failed to register metadata to LFN %s: %s'
+                % (gain_file, gain_metadata))
+        sys.exit(-9) 
 
     # Add ancestry
     ancestry_dict = {}
