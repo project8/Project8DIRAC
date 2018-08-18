@@ -122,10 +122,10 @@ def uploadJobOutputROOT(software_tag, config_tag):
                 % (gain_lfn, gain_metadata))
         sys.exit(-9) 
     gain_metadata = {'DataExt': 'root', 'DataFlavor': 'gain'}
-    res = fc.setMetadata(gain_file, gain_metadata)
+    res = fc.setMetadata(gain_lfn, gain_metadata)
     if not res['OK']:
         print('Failed to register metadata to LFN %s: %s'
-                % (gain_file, gain_metadata))
+                % (gain_lfn, gain_metadata))
         sys.exit(-9) 
         
     ################################
