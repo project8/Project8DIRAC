@@ -85,8 +85,8 @@ def uploadJobOutputROOT(software_tag, config_tag):
     ## Create directory structures ##
     #################################
     datatype_dir = dirname.replace('data', 'ts_processed')
-    software_dir = os.path.join(datatype_dir, '/katydid_%s' % software_tag)                
-    config_dir = os.path.join(software_dir, '/termite_%s' % config_tag)                                  
+    software_dir = os.path.join(datatype_dir, 'katydid_%s' % software_tag)                
+    config_dir = os.path.join(software_dir, 'termite_%s' % config_tag)                                  
 
     ###########################
     ## Upload new data files ##
