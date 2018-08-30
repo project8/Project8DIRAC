@@ -96,8 +96,10 @@ class Project8CalibProcessedFileSyncAgent(AgentModule):
 
             ##?? ESR data now goes to the right place in the catalog. handle rf_bkgd until we fix that to go to the right place.
             if calib_dir == 'rf_bkgd':
+                gLogger.info("Syncing rf_bkgd")
                 se_data_dir = path.join(self.SEDataDirPath, path.join(calib_dir,self.ProcDataDir))
             else:
+                gLogger.info("Syncing esr")
                 se_data_dir = path.join('/project8/dirac/calib', path.join(calib_dir,self.ProcDataDir))
             local_data_dir = path.join(self.LocalDataDirPath, path.join(calib_dir,self.ProcDataDir))
             
