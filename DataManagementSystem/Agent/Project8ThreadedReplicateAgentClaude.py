@@ -250,7 +250,7 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         job.addToOutputSandbox.append('std.out')
         if _calibType == 'esr':
             job.setInputSandbox([_sh_script, _py_script, _upload_script, _access_script])
-        else
+        else:
             job.setInputSandbox([_sh_script, _py_script])
             job.setOutputData(_outputFiles, _outputSE, _outputPath )
         _inputLFN = 'LFN:' + inputLFN
