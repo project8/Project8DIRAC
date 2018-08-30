@@ -199,12 +199,13 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         ### Define job parameter values here
         _site = 'DIRAC.PNNL.us'
         _cputime = 1000
-#        _outputSE = 'PNNL-HEP-SRM-SE'
         _outputSE = 'PNNL-PIC-SRM-SE'
         ### For ESR
-        _sh_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/esr.sh'
-        _py_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/esr.py'
-        _outputFiles = ['*result.json', '*plots.root', '*.png', '*.pdf']
+        _sh_script =     '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/esr.sh'
+        _py_script =     '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/esr.py'
+        _upload_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/upload_esr.py'
+        _access_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/p8dirac_safe_access.py'
+        #_outputFiles = ['*result.json', '*plots.root', '*.png', '*.pdf']
         _arguments = '*.json'
         ############################
     
@@ -214,7 +215,7 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
             _calibType =  'esr'
         elif 'rf_bkgd' in inputLFN:
             _calibType =  'rf_bkgd'
-            _outputFiles = ['*.pdf', '*.png']
+            #_outputFiles = ['*.pdf', '*.png']
             _arguments = '*.dpt'
             _sh_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/rf_bkgd_scripts/rf_bkgd.sh'
             _py_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/rf_bkgd_scripts/rf_bkgd.py'
@@ -247,8 +248,11 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         job.setCPUTime(_cputime)
         job.addToOutputSandbox.append('std.err')
         job.addToOutputSandbox.append('std.out')
-        job.setOutputData(_outputFiles, _outputSE, _outputPath )
-        job.setInputSandbox([_sh_script, _py_script])
+        if _calibType == 'esr':
+            job.setInputSandbox([_sh_script, _py_script, _upload_script, _access_script])
+        else
+            job.setInputSandbox([_sh_script, _py_script])
+            job.setOutputData(_outputFiles, _outputSE, _outputPath )
         _inputLFN = 'LFN:' + inputLFN
         job.setInputData(_inputLFN)
         job.setExecutable(_sh_script, arguments=_arguments)
