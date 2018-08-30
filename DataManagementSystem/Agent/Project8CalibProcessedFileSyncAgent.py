@@ -94,8 +94,8 @@ class Project8CalibProcessedFileSyncAgent(AgentModule):
  
         for calib_dir in self.calibDirs:
 
-            ##?? ESR data now goes to the right place in the catalog. handle rf_bkg until we fix that to go to the right place.
-            if calib_dir == 'rf_bkg':
+            ##?? ESR data now goes to the right place in the catalog. handle rf_bkgd until we fix that to go to the right place.
+            if calib_dir == 'rf_bkgd':
                 se_data_dir = path.join(self.SEDataDirPath, path.join(calib_dir,self.ProcDataDir))
             else:
                 se_data_dir = path.join('/project8/dirac/calib', path.join(calib_dir,self.ProcDataDir))
