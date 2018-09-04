@@ -206,6 +206,7 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         _upload_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/upload_esr.py'
         _access_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/esr_scripts/p8dirac_safe_access.py'
         #_outputFiles = ['*result.json', '*plots.root', '*.png', '*.pdf']
+        _outputFiles = []
         _arguments = '*.json'
         ############################
     
@@ -215,7 +216,7 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
             _calibType =  'esr'
         elif 'rf_bkgd' in inputLFN:
             _calibType =  'rf_bkgd'
-            #_outputFiles = ['*.pdf', '*.png']
+            _outputFiles = ['*.pdf', '*.png']
             _arguments = '*.dpt'
             _sh_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/rf_bkgd_scripts/rf_bkgd.sh'
             _py_script = '/opt/dirac/pro/DIRAC/DataManagementSystem/Agent/rf_bkgd_scripts/rf_bkgd.py'
