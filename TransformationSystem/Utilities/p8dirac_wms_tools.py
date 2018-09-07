@@ -11,6 +11,7 @@ from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 import os
 import sys
 import json
+import collections
 
 ops_dict = Operations().getOptionsDict('Transformations/')
 if not ops_dict['OK']:
@@ -207,63 +208,79 @@ def getMergeJobLFNs():
 # The idea is to call this function before running p8dirac_postprocessing.py
 # in p8dirac_postprocessing.sh. It'll create the json file, which we can then
 # pass the path to to p8dirac_postprocessing.py
-def createDetails():
+def createDetails(software_tag, config_tag):
     lfn_list = getMergeJobLFNs()
     if len(lfn_list) == 0:
         print('No ROOT/HDF5 files found')
         sys.exit(-9)
 
-    # Code adapted from ladybug/post-processing/job_submitter.py
-    file_dict = {}
-    for lfn in lfn_list:
-        metadata = fc.getFileUserMetadata(lfn)
-        if not metadata['OK']:
-            print('Failed to retrieve metadata for %s: %s'
-                    % (lfn, metadata['Message']))
-            continue
-        if not metadata['Value'].get('run_id'):
-            print('No run_id for %s' % lfn)
-            continue
+    # Get all lfns based on run_id
+    metadata = fc.getFileUserMetadata(lfn[0])
+    run_id = metadata['Value']['run_id']
+    meta = {}
+    meta['run_id'] = run_id
+    verifiedlfnlist = fc.findFilesByMetadata(meta)  
+    verifiedlfnlist = verifiedlfnlist['Value']
 
-        run_id = metadata['Value']['run_id']
-        lfn_dirname = os.path.dirname(lfn)
-        # Change the location from Processed to Merged
-        lfn_dirname = lfn_dirname.replace('/Processed', '/Merged')
-        if lfn_dirname.endswith('/root'):
-            lfn_dirname = lfn_dirname.replace('/root', '')
-        elif lfn_dirname.endswith('/h5'):
-            lfn_dirname = lfn_dirname.replace('/h5', '')
-        else:
-            print('%s format not supported' % lfn_dirname)
-            continue
+    # if the job id lfns and run_id lfns list matches, then proceed
+    if collections.Counter(verifiedlfnlist) == collections.Counter(lfn_list)
+        # Code adapted from ladybug/post-processing/job_submitter.py
+        file_dict = {}
+        for lfn in lfn_list:
+            metadata = fc.getFileUserMetadata(lfn)
+            if not metadata['OK']:
+                print('Failed to retrieve metadata for %s: %s'
+                        % (lfn, metadata['Message']))
+                continue
+            if not metadata['Value'].get('run_id'):
+                print('No run_id for %s' % lfn)
+                continue
 
-        # Extract the analysis name
-        foundVersion = False
-        dirs = lfn_dirname.split('/')
-        for d in dirs:
-            if 'katydid' in d:
-                tmp = d.split('_')
-                version = tmp[1]
-                foundVersion = True
-                break
-        if not foundVersion:
-            print('LFN %s does not match naming convention')
-            sys.exit(-9)
-        if not file_dict.get(version):
-            # Assumes files have the same run_id (plugin should ensure this)
-            file_dict[version] = {
-                    'run_id': run_id,
-                    'lfn_list': [],
-                    'output_lfn_path': lfn_dirname}
-        if run_id != file_dict[version]['run_id']:
-            print('Warning: run_id %d inconsistent with other job lfn'
-                    'run_ids (%d)' % (run_id, file_dict[version]['run_id']))
-            continue
-        file_dict[version]['lfn_list'].append(lfn)
+            run_id = metadata['Value']['run_id']
+            lfn_dirname = os.path.dirname(lfn)
+            # Change the location from Processed to Merged
+            lfn_dirname = lfn_dirname.replace('/ts_processed', '/merged')
+            if lfn_dirname.endswith('/root'):
+                lfn_dirname = lfn_dirname.replace('/root', '')
+            elif lfn_dirname.endswith('/h5'):
+                lfn_dirname = lfn_dirname.replace('/h5', '')
+            else:
+                print('%s format not supported' % lfn_dirname)
+                continue
 
-    fp = open('details.json', 'w')
-    json.dump(file_dist, fp)
-    fp.close()
+            # Extract the analysis name
+            foundVersion = False
+            dirs = lfn_dirname.split('/')
+            version = software_tag               
+            '''
+            for d in dirs:
+                if 'katydid' in d:
+                    tmp = d.split('_')
+                    version = tmp[1]
+                    foundVersion = True
+                    break
 
-    return os.path.join(os.getswd(), 'details.json')
+            if not foundVersion:
+                print('LFN %s does not match naming convention')
+                sys.exit(-9)
+            '''
+            if not file_dict.get(version):
+                # Assumes files have the same run_id (plugin should ensure this)
+                file_dict[version] = {
+                        'run_id': run_id,
+                        'lfn_list': [],
+                        'output_lfn_path': lfn_dirname}
+            if run_id != file_dict[version]['run_id']:
+                print('Warning: run_id %d inconsistent with other job lfn'
+                        'run_ids (%d)' % (run_id, file_dict[version]['run_id']))
+                continue
+            file_dict[version]['lfn_list'].append(lfn)
+
+        fp = open('details.json', 'w')
+        json.dump(file_dist, fp)
+        fp.close()
+
+        return os.path.join(os.getswd(), 'details.json')
+    else:
+        print('The list of lfns in the submitted job (JobID - %s) does not match the lfn list for run_id %s', %(int(os.environ['JOBID']), run_id))
 
