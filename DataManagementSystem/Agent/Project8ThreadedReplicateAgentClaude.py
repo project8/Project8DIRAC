@@ -197,7 +197,8 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
             """
 
         ### Define job parameter values here
-        _site = 'DIRAC.PNNL.us'
+        ##!! BAV 9/23/18: do NOT specify the site anymore. In any case DIRAC.PNNL.us no longer exists.
+        #_site = 'DIRAC.PNNL.us'
         _cputime = 1000
         _outputSE = 'PNNL-PIC-SRM-SE'
         ### For ESR
