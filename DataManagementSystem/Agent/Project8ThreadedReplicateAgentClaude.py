@@ -246,7 +246,7 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         ### Define Job parameters
         job = Job()
         job.setName('{}: {}'.format(_calibType, _inputFile))
-        job.setDestination(_site)
+        #job.setDestination(_site)
         job.setCPUTime(_cputime)
         job.addToOutputSandbox.append('std.err')
         job.addToOutputSandbox.append('std.out')
