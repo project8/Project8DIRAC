@@ -99,14 +99,15 @@ def uploadJobOutputROOT(software_tag, config_tag):
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
         print('Failed to upload event file: %s' % res['Message'])
-        sys.exit(-9)
-    print('Event file uploaded: %s' % event_lfn)
-    event_metadata = {'DataExt': 'root', 'DataFlavor': 'event'}
-    res = fc.setMetadata(event_lfn, event_metadata)
-    if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s'
-                % (event_lfn, event_metadata))
-        sys.exit(-9) 
+        #sys.exit(-9)
+    if res['OK']:
+        print('Event file uploaded: %s' % event_lfn)
+        event_metadata = {'DataExt': 'root', 'DataFlavor': 'event'}
+        res = fc.setMetadata(event_lfn, event_metadata)
+        if not res['OK']:
+            print('Failed to register metadata to LFN %s: %s'
+                    % (event_lfn, event_metadata))
+            sys.exit(-9) 
 
     # Gain file
     gain_pfn = os.getcwd() + '/GainVariation.root'
