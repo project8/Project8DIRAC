@@ -38,7 +38,7 @@ except Exception:
     sys.exist(-9)
 
 def check_lfn_health(lfn, software_tag):
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nroot -b " + lfn + " -q")
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + software_tag + "/setup.sh\nroot -b " + lfn + " -q")
     return status
     #pdb.set_trace()
 
