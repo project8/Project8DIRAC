@@ -37,12 +37,12 @@ except Exception:
     print('Failed to initialize FileCatalogClient object')
     sys.exist(-9)
 
-def check_lfn_health(lfn):
+def check_lfn_health(lfn, software_tag):
     status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nroot -b " + lfn + " -q")
     return status
     #pdb.set_trace()
 
-def concatenate_root_files(output_root_file, input_root_files,force=False):
+def concatenate_root_files(output_root_file, input_root_files, force=False):
     '''
     Concatenate the root files into one single root file.
     Doing so will merge the trees of each input file.
@@ -124,7 +124,7 @@ verifiedlfnlist = ['rid000006968_6_event.root', 'rid000006968_6_2_event.root', '
 lfn_good_list = []
 lfn_bad_list = []
 for lfn in verifiedlfnlist:
-    status = check_lfn_health(lfn)
+    status = check_lfn_health(lfn, software_tag)
     if status > 0:
         lfn_good_list.append(lfn)
     else:
