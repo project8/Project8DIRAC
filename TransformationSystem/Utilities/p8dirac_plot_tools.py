@@ -51,45 +51,197 @@ def getPlotJobLFNs():
     # Clean up LFN
     input_lfns = [lfn.replace('LFN:', '') for lfn in lfns]
     return input_lfns
-  
-def p8dirac_quality_plots(rootfile):
-    input_root_filename = os.path.basename(rootfile)
-    where_in_catalog = os.path.dirname(rootfile)
-    print('p8dirac_postprocessing: Looking for {}'.format(input_root_filename))
-    if not rootfile.endswith('.root'):
-        print('p8dirac_postprocessing: {} is not a root file. Stopping here!'.format(
-            rootfile))
-        return
-    print('p8dirac_postprocessing: Starting generation of quality plots')
-    list_pfn_plots = postprocessing.quality_plots(
-        input_root_filename, 'multiTrackEvents')
 
-    print('p8dirac_postprocessing: listing file in current folder:')
-    files = [f for f in os.listdir('.') if os.path.isfile(f)]
-    for f in files:
-        print(f)
+def quality_plots(input_file, tree_name,output_dir=None):
+    '''
+    Create quality plots of the relevant quantities contained into the tree of a root file.
+    The plots are saved as pdf in the output_dir.
+    Some cosmetic elements require the name of the files to be as events_000001097_katydid_v2.7.0_concat.root
+    If changed, modify #1
+    '''
+    # variable to plot
+    plotted_var = [
+        'Event.fStartTimeInAcq',
+        'Event.fTimeLength',
+        'Event.fStartFrequency',
+        'Event.fFirstTrackSlope',
+        'Event.fFirstTrackTimeLength',
+        'Event.fTracks.fSlope',
+        'Event.fTotalEventSequences'
+    ]
+    # title for the x axis
+    title_plotted_var = [
+        'StartTimeInAcq [s]',
+        'TimeLength [s]',
+        'StartFrequency [Hz]',
+        'FirstTrackSlope [Hz/s]',
+        'FirstTrackTimeLength [s]',
+        'Tracks Slope [Hz/s]',
+        'Number of tracks per event'
+    ]
+    # enable/disable log y scale 
+    scale_plotted_var = [
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        1
+    ]
 
-    for f in list_pfn_plots:
-        output_lfn_name = os.path.join(os.path.abspath(
-            os.path.join(where_in_catalog, os.pardir)), f)
-        print('p8dirac_postprocessing: replacing file {} as {}'.format(
-            f, output_lfn_name))
-        status = p8dirac_safe_access.p8dirac_safe_access(
-            'replace', output_lfn_name, f, SE, 3, 30)
-        if status['OK']:
-            print('p8dirac_postprocessing: successfully added {} as {}'.format(
-                f, output_lfn_name))
+    #more complex plots (in case of failure)
+    more_complex_plot = [
+        'JumpSize',
+        'JumpSizeBetweenEvents',
+        'JumpLength',
+        'JumpLengthClose',
+        'TrackEventLengths',
+        'NumberTracksInEvent'
+    ]
+    more_complex_plot_title = [
+        "Jump size [MHz]",
+        "Jump size [MHz]",
+        "Jump length between events [s]",
+        "Jump length between events [s]",
+        "Time [s]",
+        "Number of tracks per event"
+    ]
 
-        print('p8dirac_postprocessing: adding ancestors')
-        ancestry_dict = {'{}'.format(output_lfn_name): {'Ancestors': rootfile}}
-        status = fcc.addFileAncestors(ancestry_dict)
-        if not status['OK']:
-            print('p8dirac_postprocessing: Failed to register ancestry {} for {}.'.format(
-                rootfile, output_lfn_name))
-            return
+    # Transform list into single element
+    if isinstance(input_file,list):
+        input_file = input_file[0]
+    input_filename = os.path.basename(os.path.splitext(input_file)[0])
 
-    print("p8dirac_postprocessing: control plots created and added to the catalog")
-    return
+    list_pfn_plots = []
+
+    # Timestamp box
+    timestampBox = ROOT.TPaveText(0.001,
+                       0.001,
+                       0.45,
+                       0.06,
+                       "BRNDC")
+    timestampBox.SetTextColor(1)
+    timestampBox.SetFillColor(0)
+    timestampBox.SetTextAlign(12)
+    timestampBox.SetTextSize(0.04)
+    timestampBox.SetBorderSize(1)
+    timestampBox.AddText(datetime.datetime.now().strftime("%a, %d. %b %Y %I:%M:%S%p UTC"))
+    
+    # empty tree box
+    emptyTreeBox = ROOT.TPaveText(0.31,
+                       0.41,
+                       0.6,
+                       0.6)
+                    #    "BRNDC")
+    emptyTreeBox.SetTextColor(4)
+    emptyTreeBox.SetFillColor(0)
+    emptyTreeBox.SetTextAlign(22)
+    emptyTreeBox.SetTextAngle(45)
+    emptyTreeBox.SetTextSize(0.04)
+    emptyTreeBox.SetBorderSize(0)
+    emptyTreeBox.AddText("Tree {}".format(tree_name))
+    emptyTreeBox.AddText("does not exist")
+
+    # Cosmetic #1
+    title = input_file.replace("_"," ")
+    title = title.replace("events ","Run #")
+    title = title.replace("katydid","Katydid")
+    title = title.replace("concat","")
+    title = title.replace(".root","")
+
+    print('postprocessing: Opening root file {}'.format(input_filename))
+    file = ROOT.TFile.Open(str(input_file),'r')
+    print('postprocessing: Opening tree {}'.format(tree_name))
+
+    # Loop that will generate empty plots if the tree does not exist
+    can =  ROOT.TCanvas("data_quality","data_quality",600,400)
+    if not file.GetListOfKeys().Contains(str(tree_name)):
+        print('postprocessing: tree name given ({}) is not in root file: will create empty plots!'.format(tree_name))
+        htemp = ROOT.TH1F("htemp","Temporary histo",100,0,1)
+        print('postprocessing: Generating basic plots')
+        for i,var in enumerate(plotted_var):
+            htemp.SetTitle(title)
+            htemp.GetXaxis().SetTitle(title_plotted_var[i])
+            htemp.Draw()
+            timestampBox.Draw()
+            emptyTreeBox.Draw()
+            filename = str(input_filename)+'_'+str(var).replace('.','_')+'.pdf'
+            can.SetLogy(scale_plotted_var[i])
+            if output_dir is None:
+                can.SaveAs(filename)
+                list_pfn_plots.append(filename)
+            else:
+                can.SaveAs(os.path.join(output_dir,filename))
+                list_pfn_plots.append(os.path.join(output_dir,filename))
+            can.SetLogy(0)
+        print('postprocessing: Generating more complex plots')
+        for i,var in enumerate(more_complex_plot):
+            htemp.SetTitle(title)
+            htemp.GetXaxis().SetTitle(more_complex_plot_title[i])
+            htemp.Draw()
+            timestampBox.Draw()
+            emptyTreeBox.Draw()
+            filename = str(input_filename)+'_'+str(var).replace('.','_')+'.pdf'
+            # can.SetLogy(scale_plotted_var[i])
+            if output_dir is None:
+                can.SaveAs(filename)
+                list_pfn_plots.append(filename)
+            else:
+                can.SaveAs(os.path.join(output_dir,filename))
+                list_pfn_plots.append(os.path.join(output_dir,filename))
+            can.SetLogy(0)
+        return list_pfn_plots
+    
+    # Proper generation of the plots if the tree exists
+    tree = file.Get(str(tree_name))
+    print('postprocessing: Generating basic plots')
+    for i,var in enumerate(plotted_var):
+        print('postprocessing: Generating {} histogram'.format(str(var)))
+        tree.Draw(str(var))
+        htemp = ROOT.gPad.GetPrimitive("htemp")
+        htemp.SetTitle(title)
+        htemp.GetXaxis().SetTitle(title_plotted_var[i])
+        htemp.Draw()
+        timestampBox.Draw()
+
+        filename = str(input_filename)+'_'+str(var).replace('.','_')+'.pdf'
+        can.SetLogy(scale_plotted_var[i])
+        if output_dir is None:
+            can.SaveAs(filename)
+            list_pfn_plots.append(filename)
+        else:
+            can.SaveAs(os.path.join(output_dir,filename))
+            list_pfn_plots.append(os.path.join(output_dir,filename))
+        can.SetLogy(0)
+
+    print('postprocessing: Generating more complex plots')
+
+    print('postprocessing: Generating {} histogram'.format("jump size"))
+    jumpSize = []
+    # variable for the jump length and cut jump size
+    startTimeTrack = []
+    endTimeTrack = []
+    startFreqTrack = []
+    endFreqTrack = []
+    jumpLength = []
+    jumpLengthClose = []
+    jumpSizeBetweenEvents = []
+    jumpSizeBetweenEventsCut = []
+    for iEntry in range(tree.GetEntries()):
+        tree.GetEntry(iEntry)
+        startTimeTrack.append(tree.GetLeaf("fStartTimeInRunC").GetValue())
+        endTimeTrack.append(tree.GetLeaf("fEndTimeInRunC").GetValue())
+        startFreqTrack.append(tree.GetLeaf("fStartFrequency").GetValue())
+        endFreqTrack.append(tree.GetLeaf("fEndFrequency").GetValue())
+        for i in range(1,tree.GetLeaf("fTracks.fStartFrequency").GetLen()):
+            jumpSize.append(-tree.GetLeaf("fTracks.fStartFrequency").GetValue(i)+tree.GetLeaf("fTracks.fEndFrequency").GetValue(i-1))
+    for iValue in range(len(startTimeTrack)-1):
+        jumpLength.append(+endTimeTrack[iValue]-startTimeTrack[iValue+1])
+        jumpSizeBetweenEvents.append(-startFreqTrack[iValue+1]+endFreqTrack[iValue])
+        if -endTimeTrack[iValue]+startTimeTrack[iValue+1]>-0.2 and -endTimeTrack[iValue]+startTimeTrack[iValue+1] <0.2:
+            jumpLengthClose.append(endTimeTrack[iValue]-startTimeTrack[iValue+1])
+            jumpSizeBetweenEventsCut.append(-startFreqTrack[iValue+1]+endFreqTrack[iValue])
 
 def uploadJobOutputRoot():
     ############################
@@ -102,7 +254,7 @@ def uploadJobOutputRoot():
         sys.exit(-9)
 
     ################################
-    # Get all lfns based on run_id #
+    # Get all lfns based on run_id # . --- Do we need this step??
     ################################
     try:
         fc = FileCatalogClient()
@@ -136,30 +288,30 @@ def uploadJobOutputRoot():
         sys.exit(-9)
     dirname = os.path.dirname(lfn_good_list[0])
     basename = os.path.basename(lfn_good_list[0])
-    datatype_dir = dirname.replace('ts_processed', 'merged')
+    datatype_dir = dirname.replace('ts_processed', 'plots')
     software_dir = os.path.join(datatype_dir, 'katydid_%s' % software_tag)
     config_dir = os.path.join(software_dir, 'termite_%s' % config_tag)
 
     ################
     # Plot #
     ################
-    #output_filename = 'events_%09d_merged.root' % (run_id)
-    #print('p8dirac_postprocessing: postprocessing.concatenate_root_files({},...)'.format(output_filename))
-    #hadd_status = concatenate_root_files(output_filename, lfn_good_list, force=True)
-    #if hadd_status == 0:
-    #    print('postprocessing: hadd done\n')
-    #else:
-    #    print('hadd failed to create %s.' %(output_filename))
+    print('p8dirac_postprocessing: postprocessing.quality_plots({},...)'.format(basename))
+    list_pfn_plots = quality_plots(basename, 'multiTrackEvents')
+    if len(list_pfn_plots) > 0:
+        print('postprocessing: plots done\n')
+    else:
+        print('failed to create plots for %s.' %(basename))
         
     ###############
     # Upload File #
     ###############
-    event_lfn = config_dir + '/' + output_filename
-    event_pfn = os.getcwd() + '/' + output_filename
-    res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
-    if not res['OK']:
-        print('Failed to upload plot file %s to %s.' % (event_pfn, event_lfn))
-        sys.exit(-9)
+    for file in list_pfn_plots:
+        event_lfn = config_dir + '/' + file
+        event_pfn = os.getcwd() + '/' + file
+        res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
+        if not res['OK']:
+            print('Failed to upload plot file %s to %s.' % (event_pfn, event_lfn))
+            sys.exit(-9)
 
     ###################
     # Change metadata #
@@ -173,28 +325,13 @@ def uploadJobOutputRoot():
     ####################
     # Update Ancestory #
     ####################
-    event_lfn = config_dir + '/' + output_filename
-    ancestry_dict = {}
-    ancestry_dict[event_lfn] = {'Ancestors': lfn_good_list}
-    res = fc.addFileAncestors(ancestry_dict)
-    if not res['OK']:
-        print('Failed to register ancestors: %s' % res['Message'])
-        sys.exit(-9)
+    for file in list_pfn_plots:
+        event_lfn = config_dir + '/' + file
+        ancestry_dict = {}
+        ancestry_dict[event_lfn] = {'Ancestors': lfn_good_list}
+        res = fc.addFileAncestors(ancestry_dict)
+        if not res['OK']:
+            print('Failed to register ancestors: %s' % res['Message'])
+            sys.exit(-9)
 
-if __name__ == "__main__":
 
-    parser = argparse.ArgumentParser(
-        description='Create concatenate file from root and h5 files and quality plots')
-    parser.add_argument('json_file', help='A config file (.yaml or .json)')
-    args = parser.parse_args()
-
-    if os.path.exists(args.json_file):
-        with open(args.json_file, 'r') as f:
-            details = json.load(f)
-        print(details)
-        rootfilepath = p8dirac_concat(details=details, fileformat='root')
-        # p8dirac_concat(details=details, fileformat='h5')
-        p8dirac_quality_plots(rootfilepath)
-    else:
-        print('p8dirac_postprocessing: {} does not exist'.format(args.json_file))
-    print("p8dirac_postprocessing: complete! Good Job!")
