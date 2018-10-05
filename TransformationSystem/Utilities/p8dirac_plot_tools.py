@@ -244,6 +244,7 @@ def quality_plots(input_file, tree_name,output_dir=None):
             jumpSizeBetweenEventsCut.append(-startFreqTrack[iValue+1]+endFreqTrack[iValue])
 
 def uploadJobOutputRoot():
+    dirac = Dirac()
     ############################
     ## Get Merge LFNs  #########
     ############################
@@ -269,6 +270,7 @@ def uploadJobOutputRoot():
     meta['run_id'] = run_id
     meta['DataExt'] = 'root'
     meta['DataFlavor'] = 'event'
+    meta['DataLevel'] = 'merged'
     verifiedlfnlist = fc.findFilesByMetadata(meta)
     verifiedlfnlist = verifiedlfnlist['Value']
     print(verifiedlfnlist)
