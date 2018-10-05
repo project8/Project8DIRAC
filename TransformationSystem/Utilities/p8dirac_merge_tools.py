@@ -88,6 +88,12 @@ def uploadJobOutputRoot():
         print('No ROOT/HDF5 files found')
         sys.exit(-9)
 
+    try:
+        dirac = Dirac()
+    except Exception:
+        print('Failed to initialize DIRAC object')
+        sys.exit(-9)
+        
     ################################
     # Get all lfns based on run_id #
     ################################
