@@ -104,7 +104,6 @@ def uploadJobOutputRoot():
         sys.exit(-9)
     metadata = fc.getFileUserMetadata(lfn_list[0])
     #print(metadata)
-    #pdb.set_trace()
     run_id = metadata['Value']['run_id']
     software_tag = metadata['Value']['SoftwareVersion']
     config_tag = metadata['Value']['ConfigVersion']
@@ -112,6 +111,7 @@ def uploadJobOutputRoot():
     meta['run_id'] = run_id
     meta['DataExt'] = 'root'
     meta['DataFlavor'] = 'event'
+    meta['DataLevel'] = 'processed'
     verifiedlfnlist = fc.findFilesByMetadata(meta)
     verifiedlfnlist = verifiedlfnlist['Value']
     print(verifiedlfnlist)
