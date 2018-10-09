@@ -12,8 +12,8 @@ import os
 import sys
 import json
 import collections
-import pdb
 import subprocess
+import ROOT
 
 ops_dict = Operations().getOptionsDict('Transformations/')
 if not ops_dict['OK']:
@@ -26,7 +26,7 @@ PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
 PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 
 def check_lfn_health(lfn, software_tag):
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + software_tag + "/setup.sh\nroot -b " + lfn + " -q")
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + lfn + " -q")
     return status
   
 def getPlotJobLFNs():
