@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+     p8dirac_client:
+          build: .
+          ## Volumes here are local directories which are mounted onto your container
+          ##     nothing is copied, they are the same file and changes on either the
+          ##     host or container will be present on the other (and will persist).
+          ##     the general format is "- <path/on/your/host>:<path/in/container>"
+          ##     The host paths are the default/suggested locations, but you can place
+          ##     files in other locations and update these paths. If you cange the
+          ##     container paths then your files may not be found by our software.
+          volumes:
+               ### These first few mounts are required for the container to be useful
+
+               ## DIRAC user certificates
+               - ~/.globus:/root/.globus
+
+               ## user custom bashrc (this is actually built into the image so you only need to mount if there are changes and you don't rebuild)
+               - ./bashrc:/root/.bashrc
