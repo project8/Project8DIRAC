@@ -6,7 +6,7 @@ In order to run a project8 dirac client you need:
 ## Instructions
 To setup Project8Dirac client:
 - download the files from this repo.
-- execute 'docker-compose run --rm p8dirac_client''
+- execute 'docker-compose run --rm p8dirac_client'
 
 ## Included files
 
