@@ -1,7 +1,7 @@
 """
 TransformationPlugin is a class wrapping the supported transformation plugins
 """
-
+import os
 from collections import Counter
 
 from DIRAC import gConfig, gLogger, S_OK, S_ERROR
@@ -48,6 +48,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             runID = res['Value']
             runDict.setdefault(runID, []).append(f)
 
+        # Checking if snapshot.json is present in the lfn list for each run_id. Omit from dict if not present.
         for runIDs in runDict:
             lfn = runDict[runIDs][0]
             #lfn = '/project8/dirac/ts_processed/000yyyxxx/000007xxx/000007000/katydid_v2.13.0/termite_v1.1.1/rid000007000_10_event.root'
@@ -64,7 +65,12 @@ class TransformationPlugin(DIRACTransformationPlugin):
             res = fc.isFile([lfn_raw_data + 'rid00000' + str(run_id) + '_snapshot.json'])
             if not res['Value']['Successful'].values()[0]:
                 del runDict[runIDs]
-
+            else:
+        	#For each run_id, get list of event files from catalog to match with input lfn list.
+        	inputDataQuery = {'run_id': run_id, 'DataLevel': 'processed', 'DataFlavor': 'event'}
+        	result = fc.findFilesByMetadata( inputDataQuery )
+                if result['Value'] != runDict[runIDs]:
+                    del runDict[runIDs]
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
             return ops_dict
