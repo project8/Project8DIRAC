@@ -48,6 +48,23 @@ class TransformationPlugin(DIRACTransformationPlugin):
             runID = res['Value']
             runDict.setdefault(runID, []).append(f)
 
+        for runIDs in runDict:
+            lfn = runDict[runIDs][0]
+            #lfn = '/project8/dirac/ts_processed/000yyyxxx/000007xxx/000007000/katydid_v2.13.0/termite_v1.1.1/rid000007000_10_event.root'
+            metadata = fc.getFileUserMetadata(lfn)
+            run_id = metadata['Value']['run_id']
+            software_tag = metadata['Value']['SoftwareVersion']
+            config_tag = metadata['Value']['ConfigVersion']
+            print(software_tag)
+            basename = os.path.basename(lfn)
+            stringtoremove = [software_tag + '/' + config_tag + '/' + basename]
+            lfn_raw_data = lfn.replace(stringtoremove[0],'')
+            lfn_raw_data = lfn_raw_data.replace('ts_processed','data')
+            print([lfn_raw_data + 'rid00000' + str(run_id) + '_snapshot.json'])
+            res = fc.isFile([lfn_raw_data + 'rid00000' + str(run_id) + '_snapshot.json'])
+            if not res['Value']['Successful'].values()[0]:
+                del runDict[runIDs]
+
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
             return ops_dict
