@@ -107,12 +107,7 @@ def uploadJobOutputRoot():
     run_id = metadata['Value']['run_id']
     software_tag = metadata['Value']['SoftwareVersion']
     config_tag = metadata['Value']['ConfigVersion']
-    meta = {}
-    meta['run_id'] = run_id
-    meta['DataExt'] = 'root'
-    meta['DataFlavor'] = 'event'
-    meta['DataLevel'] = 'processed'
-    verifiedlfnlist = fc.findFilesByMetadata(meta)
+    verifiedlfnlist = fc.findFilesByMetadata({'run_id': run_id, 'DataExt': 'root', 'DataFlavor': 'event', 'DataLevel': 'processed'})
     verifiedlfnlist = verifiedlfnlist['Value']
     print(verifiedlfnlist)
 
@@ -158,7 +153,7 @@ def uploadJobOutputRoot():
     ###################
     # Change metadata #
     ###################
-    metadata['DataLevel'] = 'merged'
+    metadata['DataFlavor'] = 'merged'
     res = fc.setMetadata(datatype_dir, metadata)
     if not res['OK']:
         print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata))

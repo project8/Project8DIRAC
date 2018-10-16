@@ -97,39 +97,33 @@ def uploadJobOutputROOT(software_tag, config_tag):
     event_pfn = os.getcwd() + '/TracksAndEvents.root'
     event_lfn = os.path.join(config_dir, basename.replace('.egg', '_event.root'))    
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
+    #if not res['OK']:
+    #    print('Failed to upload event file: %s' % res['Message'])
+    #    #sys.exit(-9)
+    #if res['OK']:
+    #print('Event file uploaded: %s' % event_lfn)
+    event_metadata = {'DataExt': 'root', 'DataFlavor': 'event'}
+    res = fc.setMetadata(event_lfn, event_metadata)
     if not res['OK']:
-        print('Failed to upload event file: %s' % res['Message'])
-        #sys.exit(-9)
-    if res['OK']:
-        print('Event file uploaded: %s' % event_lfn)
-        event_metadata = {'DataExt': 'root', 'DataFlavor': 'event'}
-        res = fc.setMetadata(event_lfn, event_metadata)
-        if not res['OK']:
-            print('Failed to register metadata to LFN %s: %s'
-                    % (event_lfn, event_metadata))
-            sys.exit(-9) 
+        print('Failed to register metadata to LFN %s: %s'
+                % (event_lfn, event_metadata))
+        sys.exit(-9) 
 
     # Gain file
     gain_pfn = os.getcwd() + '/GainVariation.root'
     gain_lfn = os.path.join(config_dir, basename.replace('.egg', '_gain.root'))    
     res = dirac.addFile(gain_lfn, gain_pfn, PROD_DEST_DATA_SE)
+    #if not res['OK']:
+    #    print('Failed to upload gain file: %s' % res['Message'])
+    #    #sys.exit(-9)
+    #if res['OK']:
+    #print('Gain file uploaded: %s' % gain_lfn)
+    gain_metadata = {'DataExt': 'root', 'DataFlavor': 'gain'}
+    res = fc.setMetadata(gain_lfn, gain_metadata)
     if not res['OK']:
-        print('Failed to upload gain file: %s' % res['Message'])
-        #sys.exit(-9)
-    if res['OK']:
-        print('Gain file uploaded: %s' % gain_lfn)
-        gain_metadata = {'DataExt': 'root', 'DataFlavor': 'gain'}
-        res = fc.setMetadata(gain_lfn, gain_metadata)
-        if not res['OK']:
-            print('Failed to register metadata to LFN %s: %s'
-                    % (gain_lfn, gain_metadata))
-            sys.exit(-9) 
-        gain_metadata = {'DataExt': 'root', 'DataFlavor': 'gain'}
-        res = fc.setMetadata(gain_lfn, gain_metadata)
-        if not res['OK']:
-            print('Failed to register metadata to LFN %s: %s'
-                    % (gain_lfn, gain_metadata))
-            sys.exit(-9) 
+        print('Failed to register metadata to LFN %s: %s'
+                % (gain_lfn, gain_metadata))
+        sys.exit(-9) 
         
     ################################
     ## Setting directory metadata ##
