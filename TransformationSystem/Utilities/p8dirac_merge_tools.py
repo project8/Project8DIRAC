@@ -107,7 +107,9 @@ def uploadJobOutputRoot():
     run_id = metadata['Value']['run_id']
     software_tag = metadata['Value']['SoftwareVersion']
     config_tag = metadata['Value']['ConfigVersion']
-    verifiedlfnlist = fc.findFilesByMetadata({'run_id': run_id, 'DataExt': 'root', 'DataFlavor': 'event', 'DataLevel': 'processed'})
+    metadata['Value']['DataExt'] = 'root'
+    metadata['Value']['DataFlavor'] = 'event'
+    verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
     verifiedlfnlist = verifiedlfnlist['Value']
     print(verifiedlfnlist)
 
