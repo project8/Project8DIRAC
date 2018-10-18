@@ -26,8 +26,8 @@ PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
 PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 
 ## TODO: Should use dynamic software tag
-def check_lfn_health(lfn):
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + lfn + " -q")
+def check_lfn_health(pfn):
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
     return status
 
 def concatenate_root_files(output_root_file, input_root_files, force=False):
@@ -114,16 +114,17 @@ def uploadJobOutputROOT():
     ########################
     # Check health of LFNs #
     ########################
-    lfn_good_list = []
-    lfn_bad_list = []
+    good_files = []
+    bad_files = []
     for lfn in lfn_list:
-        status = check_lfn_health(lfn)
+        local_file = os.path.basename(lfn)
+        status = check_lfn_health(local_file)
         if status > 0:
-            lfn_good_list.append(lfn)
+            good_files.append(local_file)
         else:
             print(status)
-            lfn_bad_list.append(lfn)
-    if len(lfn_good_list) < 1:
+            lfn_bad_list.append(local_file)
+    if len(good_files) < 1:
         print("no good files")
         sys.exit(-9)
 
@@ -132,7 +133,7 @@ def uploadJobOutputROOT():
     ################
     output_filename = 'events_%09d_merged.root' % metadata['Value']['run_id']
     print('p8dirac_postprocessing: postprocessing.concatenate_root_files({},...)'.format(output_filename))
-    hadd_status = concatenate_root_files(output_filename, lfn_good_list, force=True)
+    hadd_status = concatenate_root_files(output_filename, good_files, force=True)
     if hadd_status == 0:
         print('postprocessing: hadd done\n')
     else:
@@ -142,7 +143,7 @@ def uploadJobOutputROOT():
     ###############
     # Upload File #
     ###############
-    lfn_dirname = os.path.dirname(lfn_good_list[0])
+    lfn_dirname = os.path.dirname(lfn_list[0])
     event_lfn = lfn_dirname + '/' + output_filename
     event_pfn = os.getcwd() + '/' + output_filename
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
