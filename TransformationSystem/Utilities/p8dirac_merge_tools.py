@@ -137,6 +137,8 @@ def uploadJobOutputROOT():
         print('postprocessing: hadd done\n')
     else:
         print('hadd failed to create %s.' %(output_filename))
+        sys.exit(-9)
+        
     ###############
     # Upload File #
     ###############
