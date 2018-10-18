@@ -40,56 +40,46 @@ class TransformationPlugin(DIRACTransformationPlugin):
         """
         files = dict(self.data).keys()
 
-        runDict = {}
-        for f in files:
-            res = self.util.getRunID(f)
-            if not res['OK']:
-                continue # Should we continue, or return S_ERROR
-            runID = res['Value']
-            runDict.setdefault(runID, []).append(f)
+	runDict = {}
+	for f in files:
+	    res = fc.getFileUserMetadata(f)
+	    if not res['OK']:
+		continue # Should we continue, or return S_ERROR
+	    runID = res['Value']['run_id']
+	    runDict.setdefault(runID, []).append(f)
 
-        # Checking if snapshot.json is present in the lfn list for each run_id. Omit from dict if not present.
-        for runID in runDict:
-            lfns = runDict[runID]
-            if not lfns:
-                continue
-            res = fc.getFileUserMetadata(lfns[0])
-            if not res['OK']:
-                sys.exit(-9)
-            metadata = res['Value']
-            inputDataQuery = {'DataType': 'data', 'DataLevel': 'RAW', 'run_id': metadata['Value']['run_id']}
-            #[metadata.pop(key) for key in ['SoftwareVersion', 'DataLevel', 'DataExt', 'ConfigVersion', 'DataType', 'DataFlavor']]
-            #metadata['DataLevel'] = 'RAW'
-            #res = fc.findFilesByMetadata( metadata )
-            #if not res['OK']:
-            #    print('count not get files')
-            #    sys.exit(-9)
-            #filtered_data = {k:v for k,v in res['Value'] if 'snapshot.json' in k}
-            #inputDataQuery = {'DataType': 'data', 'DataLevel': 'raw'}
-	    #inputDataQuery.update({'run_id': '8603'})        
-            #print(inputDataQuery)
-            result = fc.findFilesByMetadata( inputDataQuery )
-            if not result['OK']:
-                print('count not get files')
-                sys.exit(-9)
-            files = []
-            if result['OK']:
-                files = result['Value']
-                filtered_file = list({f for f in files if 'snapshot.json' in f})
-                pprint(files)
-                pprint(filtered_file)
-            if not filtered_file:
-                del runDict[runID]
-            else:
-        	#For each run_id, get list of event files from catalog to match with input lfn list.
-                metadata['Value']['Datalevel'] = 'processed'
-                metadata['Value']['DataFlavor'] = 'event'
-        	result = fc.findFilesByMetadata( metadata['Value'] )
-                if not result['OK']:
-                    sys.exit(-9)
-                    print('could not get files')
-                if not set(result['Value']).issuperset(set(runDict[runID])):  #result['Value'] != runDict[runID]:
-                    del runDict[runID]
+	# Checking if snapshot.json is present in the lfn list for each run_id. Omit from dict if not present.
+	good_runDict = {}
+	for runID in runDict:
+	    lfns = runDict[runID]
+	    if not lfns:
+		continue
+	    res = fc.getFileUserMetadata(lfns[0])
+	    if not res['OK']:
+		continue
+	    metadata = res['Value']
+	    inputDataQuery = {'DataType': 'data', 'DataLevel': 'RAW', 'run_id': metadata['run_id']}
+	    result = fc.findFilesByMetadata( inputDataQuery )
+	    if not result['OK']:
+		print('count not get raw files')
+		continue
+	    files = []
+	    if result['OK']:
+		files = result['Value']
+		filtered_file = list({f for f in files if 'snapshot.json' in f})
+	    if not filtered_file:
+		continue
+	    #For each run_id, get list of event files from catalog to match with input lfn list.
+	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
+	    #result = fc.findFilesByMetadata( metadata )
+	    if not result['OK']:
+		continue
+	    if set(result['Value'])==(set(runDict[runID])):
+		good_runDict[runID] = runDict[runID]
+	    else:
+		print(result['Value'])
+
+
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
             return ops_dict
