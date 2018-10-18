@@ -104,22 +104,19 @@ def uploadJobOutputROOT():
         print("Failed to initialize file catalog object.")
         sys.exit(-9)
         
-    print(lfn_list[0])
+    print(lfn_list)
     metadata = fc.getFileUserMetadata(lfn_list[0])  
     if not metadata['OK']:
         print("problem with metadata query")
         sys.exit(-9)
     print(metadata['Value'])
-    verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
-    verifiedlfnlist = verifiedlfnlist['Value']
-    print(verifiedlfnlist)
-    print('number of files: %s' % str(len(verifiedlfnlist)) )
+    
     ########################
     # Check health of LFNs #
     ########################
     lfn_good_list = []
     lfn_bad_list = []
-    for lfn in verifiedlfnlist:
+    for lfn in lfn_list:
         status = check_lfn_health(lfn)
         if status > 0:
             lfn_good_list.append(lfn)
