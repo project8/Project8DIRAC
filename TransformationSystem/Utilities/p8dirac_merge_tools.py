@@ -130,7 +130,7 @@ def uploadJobOutputROOT():
     ################
     # Merge (hadd) #
     ################
-    output_filename = 'events_%09d_merged.root' % (run_id)
+    output_filename = 'events_%09d_merged.root' % metadata['Value']['run_id']
     print('p8dirac_postprocessing: postprocessing.concatenate_root_files({},...)'.format(output_filename))
     hadd_status = concatenate_root_files(output_filename, lfn_good_list, force=True)
     if hadd_status == 0:
