@@ -79,7 +79,7 @@ def getMergeJobLFNs():
     input_lfns = [lfn.replace('LFN:', '') for lfn in lfns]
     return input_lfns
 
-def uploadJobOutputRoot():
+def uploadJobOutputROOT():
     ############################
     ## Get Merge LFNs  #########
     ############################
