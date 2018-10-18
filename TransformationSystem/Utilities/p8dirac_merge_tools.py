@@ -25,8 +25,9 @@ ops_dict = ops_dict['Value']
 PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
 PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 
-def check_lfn_health(lfn, software_tag):
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + lfn + " -q")
+## TODO: Should use dynamic software tag
+def check_lfn_health(pfn):
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
     return status
 
 def concatenate_root_files(output_root_file, input_root_files, force=False):
@@ -78,7 +79,7 @@ def getMergeJobLFNs():
     input_lfns = [lfn.replace('LFN:', '') for lfn in lfns]
     return input_lfns
 
-def uploadJobOutputRoot():
+def uploadJobOutputROOT():
     ############################
     ## Get Merge LFNs  #########
     ############################
@@ -102,50 +103,50 @@ def uploadJobOutputRoot():
     except Exception:
         print("Failed to initialize file catalog object.")
         sys.exit(-9)
-    metadata = fc.getFileUserMetadata(lfn_list[0])  #meta
-    #print(metadata)
-    run_id = metadata['Value']['run_id']
-    software_tag = metadata['Value']['SoftwareVersion']
-    config_tag = metadata['Value']['ConfigVersion']
-    metadata['Value']['DataExt'] = 'root'      #meta
-    metadata['Value']['DataFlavor'] = 'event'  #meta
-    verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
-    verifiedlfnlist = verifiedlfnlist['Value']
-    print(verifiedlfnlist)
-
+        
+    print(lfn_list)
+    metadata = fc.getFileUserMetadata(lfn_list[0])  
+    if not metadata['OK']:
+        print("problem with metadata query")
+        sys.exit(-9)
+    print(metadata['Value'])
+    
     ########################
     # Check health of LFNs #
     ########################
-    lfn_good_list = []
-    lfn_bad_list = []
-    for lfn in verifiedlfnlist:
-        status = check_lfn_health(lfn, software_tag)
+    good_files = []
+    bad_files = []
+    for lfn in lfn_list:
+        local_file = os.path.basename(lfn)
+        print('LFN: %s' %lfn)
+        print('Local File: %s' % local_file)
+        status = check_lfn_health(local_file)
         if status > 0:
-            lfn_good_list.append(lfn)
+            good_files.append(local_file)
         else:
-            lfn_bad_list.append(lfn)
-    if len(lfn_good_list) < 1:
+            print(status)
+            lfn_bad_list.append(local_file)
+    if len(good_files) < 1:
+        print("no good files")
         sys.exit(-9)
-    dirname = os.path.dirname(lfn_good_list[0])
-    basename = os.path.basename(lfn_good_list[0])
-    datatype_dir = dirname.replace('ts_processed', 'merged')
-    software_dir = os.path.join(datatype_dir, 'katydid_%s' % software_tag)
-    config_dir = os.path.join(software_dir, 'termite_%s' % config_tag)
 
     ################
     # Merge (hadd) #
     ################
-    output_filename = 'events_%09d_merged.root' % (run_id)
+    output_filename = 'events_%09d_merged.root' % metadata['Value']['run_id']
     print('p8dirac_postprocessing: postprocessing.concatenate_root_files({},...)'.format(output_filename))
-    hadd_status = concatenate_root_files(output_filename, lfn_good_list, force=True)
+    hadd_status = concatenate_root_files(output_filename, good_files, force=True)
     if hadd_status == 0:
         print('postprocessing: hadd done\n')
     else:
         print('hadd failed to create %s.' %(output_filename))
+        sys.exit(-9)
+        
     ###############
     # Upload File #
     ###############
-    event_lfn = config_dir + '/' + output_filename
+    lfn_dirname = os.path.dirname(lfn_list[0])
+    event_lfn = lfn_dirname + '/' + output_filename
     event_pfn = os.getcwd() + '/' + output_filename
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
@@ -156,7 +157,7 @@ def uploadJobOutputRoot():
     # Change metadata #
     ###################
     metadata['Value']['DataFlavor'] = 'merged'   #meta
-    res = fc.setMetadata(datatype_dir, metadata['Value'])   #meta
+    res = fc.setMetadata(event_lfn, metadata['Value'])   #meta
     if not res['OK']:
         print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata['Value']))
         sys.exit(-9)
@@ -164,7 +165,6 @@ def uploadJobOutputRoot():
     ####################
     # Update Ancestory #
     ####################
-    event_lfn = config_dir + '/' + output_filename
     ancestry_dict = {}
     ancestry_dict[event_lfn] = {'Ancestors': lfn_good_list}
     res = fc.addFileAncestors(ancestry_dict)
