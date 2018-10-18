@@ -110,7 +110,7 @@ def uploadJobOutputROOT():
         sys.exit(-9)
     verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
     verifiedlfnlist = verifiedlfnlist['Value']
-
+    print('number of files: %' % str(len(verifiedlfnlist)) )
     ########################
     # Check health of LFNs #
     ########################
