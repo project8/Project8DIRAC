@@ -57,8 +57,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
             if not res['OK']:
                 sys.exit(-9)
             metadata = res['Value']
-            [metadata.pop(key) for key in ['SoftwareVersion', 'DataLevel', 'DataExt', 'ConfigVersion', 'DataType', 'DataFlavor']]
-            metadata['DataLevel'] = 'RAW'
+            inputDataQuery = {'DataType': 'data', 'DataLevel': 'RAW', 'run_id': metadata['Value']['run_id']}
+            #[metadata.pop(key) for key in ['SoftwareVersion', 'DataLevel', 'DataExt', 'ConfigVersion', 'DataType', 'DataFlavor']]
+            #metadata['DataLevel'] = 'RAW'
             #res = fc.findFilesByMetadata( metadata )
             #if not res['OK']:
             #    print('count not get files')
@@ -67,7 +68,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             #inputDataQuery = {'DataType': 'data', 'DataLevel': 'raw'}
 	    #inputDataQuery.update({'run_id': '8603'})        
             #print(inputDataQuery)
-            result = fc.findFilesByMetadata( metadata )
+            result = fc.findFilesByMetadata( inputDataQuery )
             if not result['OK']:
                 print('count not get files')
                 sys.exit(-9)
@@ -77,7 +78,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
                 filtered_file = list({f for f in files if 'snapshot.json' in f})
                 pprint(files)
                 pprint(filtered_file)
-            if not filtered_data:
+            if not filtered_file:
                 del runDict[runID]
             else:
         	#For each run_id, get list of event files from catalog to match with input lfn list.
