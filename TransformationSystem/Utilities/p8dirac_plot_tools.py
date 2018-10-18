@@ -262,12 +262,12 @@ def uploadJobOutputRoot():
     except Exception:
         print("Failed to initialize file catalog object.")
         sys.exit(-9)
-    metadata = fc.getFileUserMetadata(lfn_list[0])
+    metadata = fc.getFileUserMetadata(lfn_list[0]) #meta
     run_id = metadata['Value']['run_id']
     software_tag = metadata['Value']['SoftwareVersion']
     config_tag = metadata['Value']['ConfigVersion']
-    metadata['Value']['DataExt'] = 'root'
-    metadata['Value']['DataFlavor'] = 'merged'
+    metadata['Value']['DataExt'] = 'root' #meta
+    metadata['Value']['DataFlavor'] = 'merged' #meta
     verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
     verifiedlfnlist = verifiedlfnlist['Value']
     print(verifiedlfnlist)
@@ -315,10 +315,10 @@ def uploadJobOutputRoot():
     ###################
     # Change metadata #
     ###################
-    metadata['DataFlavor'] = 'plots'
-    res = fc.setMetadata(datatype_dir, metadata)
+    metadata['Value']['DataFlavor'] = 'plots' #meta
+    res = fc.setMetadata(datatype_dir, metadata['Value']) #meta
     if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata))
+        print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata['Value']))
         sys.exit(-9)
 
     ####################
