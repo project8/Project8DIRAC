@@ -118,6 +118,8 @@ def uploadJobOutputROOT():
     bad_files = []
     for lfn in lfn_list:
         local_file = os.path.basename(lfn)
+        print(lfn)
+        print(local_file)
         status = check_lfn_health(local_file)
         if status > 0:
             good_files.append(local_file)
