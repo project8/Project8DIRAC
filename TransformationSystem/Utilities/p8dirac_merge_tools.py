@@ -108,6 +108,7 @@ def uploadJobOutputROOT():
     if not metadata['OK']:
         print("problem with metadata query")
         sys.exit(-9)
+    print(metadata['Value'])
     verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
     verifiedlfnlist = verifiedlfnlist['Value']
     print('number of files: %s' % str(len(verifiedlfnlist)) )
