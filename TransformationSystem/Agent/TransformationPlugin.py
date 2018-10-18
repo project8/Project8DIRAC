@@ -49,28 +49,46 @@ class TransformationPlugin(DIRACTransformationPlugin):
             runDict.setdefault(runID, []).append(f)
 
         # Checking if snapshot.json is present in the lfn list for each run_id. Omit from dict if not present.
-        for runIDs in runDict:
-            lfn = runDict[runIDs][0]
-            #lfn = '/project8/dirac/ts_processed/000yyyxxx/000007xxx/000007000/katydid_v2.13.0/termite_v1.1.1/rid000007000_10_event.root'
-            metadata = fc.getFileUserMetadata(lfn)
-            run_id = metadata['Value']['run_id']
-            software_tag = metadata['Value']['SoftwareVersion']
-            config_tag = metadata['Value']['ConfigVersion']
-            print(software_tag)
-            basename = os.path.basename(lfn)
-            stringtoremove = [software_tag + '/' + config_tag + '/' + basename]
-            lfn_raw_data = lfn.replace(stringtoremove[0],'')
-            lfn_raw_data = lfn_raw_data.replace('ts_processed','data')
-            print([lfn_raw_data + 'rid00000' + str(run_id) + '_snapshot.json'])
-            res = fc.isFile([lfn_raw_data + 'rid00000' + str(run_id) + '_snapshot.json'])
-            if not res['Value']['Successful'].values()[0]:
-                del runDict[runIDs]
+        for runID in runDict:
+            lfns = runDict[runID]
+            if not lfns:
+                continue
+            res = fc.getFileUserMetadata(lfns[0])
+            if not res['OK']:
+                sys.exit(-9)
+            metadata = res['Value']
+            [metadata.pop(key) for key in ['SoftwareVersion', 'DataLevel', 'DataExt', 'ConfigVersion', 'DataType', 'DataFlavor']]
+            metadata['DataLevel'] = 'RAW'
+            #res = fc.findFilesByMetadata( metadata )
+            #if not res['OK']:
+            #    print('count not get files')
+            #    sys.exit(-9)
+            #filtered_data = {k:v for k,v in res['Value'] if 'snapshot.json' in k}
+            #inputDataQuery = {'DataType': 'data', 'DataLevel': 'raw'}
+	    #inputDataQuery.update({'run_id': '8603'})        
+            #print(inputDataQuery)
+            result = fc.findFilesByMetadata( metadata )
+            if not result['OK']:
+                print('count not get files')
+                sys.exit(-9)
+            files = []
+            if result['OK']:
+                files = result['Value']
+                filtered_file = list({f for f in files if 'snapshot.json' in f})
+                pprint(files)
+                pprint(filtered_file)
+            if not filtered_data:
+                del runDict[runID]
             else:
         	#For each run_id, get list of event files from catalog to match with input lfn list.
-        	inputDataQuery = {'run_id': run_id, 'DataLevel': 'processed', 'DataFlavor': 'event'}
-        	result = fc.findFilesByMetadata( inputDataQuery )
-                if result['Value'] != runDict[runIDs]:
-                    del runDict[runIDs]
+                metadata['Value']['Datalevel'] = 'processed'
+                metadata['Value']['DataFlavor'] = 'event'
+        	result = fc.findFilesByMetadata( metadata['Value'] )
+                if not result['OK']:
+                    sys.exit(-9)
+                    print('could not get files')
+                if not set(result['Value']).issuperset(set(runDict[runID])):  #result['Value'] != runDict[runID]:
+                    del runDict[runID]
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
             return ops_dict
