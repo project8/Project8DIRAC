@@ -121,6 +121,7 @@ def uploadJobOutputROOT():
         if status > 0:
             lfn_good_list.append(lfn)
         else:
+            print(status)
             lfn_bad_list.append(lfn)
     if len(lfn_good_list) < 1:
         print("no good files")
