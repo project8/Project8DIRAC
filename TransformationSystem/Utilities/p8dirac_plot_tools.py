@@ -284,6 +284,12 @@ def uploadJobOutputRoot():
         print('No ROOT/HDF5 files found')
         sys.exit(-9)
 
+    try:
+        dirac = Dirac()
+    except Exception:
+        print('Failed to initialize DIRAC object')
+    sys.exit(-9)  
+    
     ################################
     # Get all lfns based on run_id # . --- Do we need this step??
     ################################
@@ -292,34 +298,36 @@ def uploadJobOutputRoot():
     except Exception:
         print("Failed to initialize file catalog object.")
         sys.exit(-9)
-    metadata = fc.getFileUserMetadata(lfn_list[0]) #meta
-    run_id = metadata['Value']['run_id']
-    software_tag = metadata['Value']['SoftwareVersion']
-    config_tag = metadata['Value']['ConfigVersion']
-    metadata['Value']['DataExt'] = 'root' #meta
-    metadata['Value']['DataFlavor'] = 'merged' #meta
-    verifiedlfnlist = fc.findFilesByMetadata(metadata['Value'])
-    verifiedlfnlist = verifiedlfnlist['Value']
-    print(verifiedlfnlist)
+        
+    print(lfn_list)
+    metadata = fc.getFileUserMetadata(lfn_list[0])  
+    if not metadata['OK']:
+        print("problem with metadata query")
+        sys.exit(-9)
+    print(metadata['Value'])
 
     ########################
     # Check health of LFNs #
     ########################
     lfn_good_list = []
-    lfn_bad_list = []
-    for lfn in verifiedlfnlist:
-        status = check_lfn_health(lfn, software_tag)
+    good_files = []
+    bad_files = []
+    for lfn in lfn_list:
+        local_file = os.path.basename(lfn)
+        print('LFN: %s' %lfn)
+        print('Local File: %s' % local_file)
+        status = check_lfn_health(local_file)
         if status > 0:
+            good_files.append(local_file)
             lfn_good_list.append(lfn)
         else:
-            lfn_bad_list.append(lfn)
-    if len(lfn_good_list) < 1:
-        sys.exit(-9)
+            print(status)
+            bad_files.append(local_file)
+    if len(good_files) < 1:
+        print("no good files")
+    sys.exit(-9)
     dirname = os.path.dirname(lfn_good_list[0])
     basename = os.path.basename(lfn_good_list[0])
-    datatype_dir = dirname.replace('ts_processed', 'plots')
-    software_dir = os.path.join(datatype_dir, 'katydid_%s' % software_tag)
-    config_dir = os.path.join(software_dir, 'termite_%s' % config_tag)
 
     ################
     # Plot #
@@ -332,30 +340,29 @@ def uploadJobOutputRoot():
         print('failed to create plots for %s.' %(basename))
         
     ###############
-    # Upload File #
+    # Upload Files #
     ###############
     for file in list_pfn_plots:
-        event_lfn = config_dir + '/' + file
-        event_pfn = os.getcwd() + '/' + file
+        lfn_dirname = os.path.dirname(lfn_list[0])
+        event_lfn = lfn_dirname + '/' + output_filename
+        event_pfn = os.getcwd() + '/' + output_filename
         res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
         if not res['OK']:
-            print('Failed to upload plot file %s to %s.' % (event_pfn, event_lfn))
+            print('Failed to upload merged file %s to %s.' % (event_pfn, event_lfn))
             sys.exit(-9)
 
-    ###################
-    # Change metadata #
-    ###################
-    metadata['Value']['DataFlavor'] = 'plots' #meta
-    res = fc.setMetadata(datatype_dir, metadata['Value']) #meta
-    if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata['Value']))
-        sys.exit(-9)
+        ###################
+        # Change metadata #
+        ###################
+        datatype_metadata = {'DataFlavor':'merged','DataExt': 'root'}
+        res = fc.setMetadata(event_lfn, datatype_metadata)   #meta
+        if not res['OK']:
+            print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata['Value']))
+            sys.exit(-9)
 
-    ####################
-    # Update Ancestory #
-    ####################
-    for file in list_pfn_plots:
-        event_lfn = config_dir + '/' + file
+        ####################
+        # Update Ancestory #
+        ####################
         ancestry_dict = {}
         ancestry_dict[event_lfn] = {'Ancestors': lfn_good_list}
         res = fc.addFileAncestors(ancestry_dict)
