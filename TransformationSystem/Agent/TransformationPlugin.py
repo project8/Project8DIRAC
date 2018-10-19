@@ -86,3 +86,18 @@ class TransformationPlugin(DIRACTransformationPlugin):
         PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
         tasks = [(PROD_DEST_DATA_SE, runDict[runID]) for runID in runDict]
         return S_OK(tasks)
+
+
+    def _P8Plot(self):
+        """
+        Generate a task that plots merged data
+        """
+        file = dict(self.data).keys()
+
+        ops_dict = opsHelper.getOptionsDict('Transformations/')
+        if not ops_dict['OK']:
+            return ops_dict
+        ops_dict = ops_dict['Value']
+        PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
+        tasks = [(PROD_DEST_DATA_SE, file]
+        return S_OK(tasks)
