@@ -73,11 +73,12 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
 	    #result = fc.findFilesByMetadata( metadata )
 	    if not result['OK']:
+		print('Could not get metadata')	
 		continue
 	    if set(result['Value'])==(set(runDict[runID])):
 		good_runDict[runID] = runDict[runID]
 	    else:
-		print(result['Value'])
+		print('List of event files from catalog do not match with input lfn list')
 
 
         ops_dict = opsHelper.getOptionsDict('Transformations/')
