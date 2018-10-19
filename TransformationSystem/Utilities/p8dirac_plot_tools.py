@@ -272,9 +272,9 @@ def quality_plots(input_file, tree_name,output_dir=None):
         if -endTimeTrack[iValue]+startTimeTrack[iValue+1]>-0.2 and -endTimeTrack[iValue]+startTimeTrack[iValue+1] <0.2:
             jumpLengthClose.append(endTimeTrack[iValue]-startTimeTrack[iValue+1])
             jumpSizeBetweenEventsCut.append(-startFreqTrack[iValue+1]+endFreqTrack[iValue])
+    return list_pfn_plots
 
 def uploadJobOutputRoot():
-    dirac = Dirac()
     ############################
     ## Get Merge LFNs  #########
     ############################
@@ -288,7 +288,7 @@ def uploadJobOutputRoot():
         dirac = Dirac()
     except Exception:
         print('Failed to initialize DIRAC object')
-    sys.exit(-9)  
+        sys.exit(-9)  
     
     ################################
     # Get all lfns based on run_id # . --- Do we need this step??
@@ -309,25 +309,19 @@ def uploadJobOutputRoot():
     ########################
     # Check health of LFNs #
     ########################
-    lfn_good_list = []
-    good_files = []
-    bad_files = []
-    for lfn in lfn_list:
-        local_file = os.path.basename(lfn)
+    if len(lfn_list) == 1:
+        local_file = os.path.basename(lfn_list[0])
         print('LFN: %s' %lfn)
         print('Local File: %s' % local_file)
         status = check_lfn_health(local_file)
-        if status > 0:
-            good_files.append(local_file)
-            lfn_good_list.append(lfn)
-        else:
-            print(status)
-            bad_files.append(local_file)
-    if len(good_files) < 1:
-        print("no good files")
-    sys.exit(-9)
-    dirname = os.path.dirname(lfn_good_list[0])
-    basename = os.path.basename(lfn_good_list[0])
+        if not status > 0:
+            print('File is not good')
+            sys.exit(-9)
+    else:
+        print("Length of lfns is not 1")
+        sys.exit(-9)
+    dirname = os.path.dirname(lfn_list[0])    
+    basename = os.path.basename(lfn_list[0])
 
     ################
     # Plot #
@@ -344,8 +338,8 @@ def uploadJobOutputRoot():
     ###############
     for file in list_pfn_plots:
         lfn_dirname = os.path.dirname(lfn_list[0])
-        event_lfn = lfn_dirname + '/' + output_filename
-        event_pfn = os.getcwd() + '/' + output_filename
+        event_lfn = lfn_dirname + '/' + file
+        event_pfn = os.getcwd() + '/' + file
         res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
         if not res['OK']:
             print('Failed to upload merged file %s to %s.' % (event_pfn, event_lfn))
