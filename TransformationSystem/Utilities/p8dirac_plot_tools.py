@@ -351,14 +351,14 @@ def uploadJobOutputRoot():
         datatype_metadata = {'DataFlavor':'plot','DataExt': 'root'}
         res = fc.setMetadata(event_lfn, datatype_metadata)   #meta
         if not res['OK']:
-            print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata['Value']))
+            print('Failed to register metadata to LFN %s: %s' % (event_lfn, datatype_metadata))
             sys.exit(-9)
 
         ####################
         # Update Ancestory #
         ####################
         ancestry_dict = {}
-        ancestry_dict[event_lfn] = {'Ancestors': lfn_good_list}
+        ancestry_dict[event_lfn] = {'Ancestors': lfn_list}
         res = fc.addFileAncestors(ancestry_dict)
         if not res['OK']:
             print('Failed to register ancestors: %s' % res['Message'])
