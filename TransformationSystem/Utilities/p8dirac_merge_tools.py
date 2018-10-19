@@ -161,7 +161,7 @@ def uploadJobOutputROOT():
     datatype_metadata = {'DataFlavor':'merged','DataExt': 'root'}
     res = fc.setMetadata(event_lfn, datatype_metadata)   #meta
     if not res['OK']:
-        print('Failed to register metadata to LFN %s: %s' % (datatype_dir, metadata['Value']))
+        print('Failed to register metadata to LFN %s: %s' % (event_lfn, datatype_metadata))
         sys.exit(-9)
 
     ####################
