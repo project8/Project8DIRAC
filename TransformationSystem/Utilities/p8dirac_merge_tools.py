@@ -114,6 +114,7 @@ def uploadJobOutputROOT():
     ########################
     # Check health of LFNs #
     ########################
+    lfn_good_list = []
     good_files = []
     bad_files = []
     for lfn in lfn_list:
@@ -123,9 +124,10 @@ def uploadJobOutputROOT():
         status = check_lfn_health(local_file)
         if status > 0:
             good_files.append(local_file)
+            lfn_good_list.append(lfn)
         else:
             print(status)
-            lfn_bad_list.append(local_file)
+            bad_files.append(local_file)
     if len(good_files) < 1:
         print("no good files")
         sys.exit(-9)
