@@ -15,6 +15,35 @@ import collections
 import subprocess
 import ROOT
 
+rightMargin = 0.1
+leftMargin = 0.09
+botMargin = 0.11
+topMargin = 0.06
+legWidth=0.2
+legHeight=0.3
+
+style = ROOT.TStyle(ROOT.gStyle)
+style.SetOptStat("nem")
+style.SetStatY(1.-topMargin)
+style.SetStatX(1.-rightMargin)
+style.SetStatW(0.2)
+style.SetStatH(0.2)
+style.SetLabelOffset(0,'xy')
+style.SetLabelSize(0.05,'xy')
+style.SetTitleOffset(0.9,'y')
+style.SetTitleSize(0.05,'y')
+style.SetLabelSize(0.05,'y')
+style.SetLabelOffset(0,'y')
+style.SetTitleSize(0.05,'x')
+style.SetLabelSize(0.05,'x')
+style.SetTitleOffset(1.02,'x')
+style.SetPalette(53) # Dark Body radiator colormap
+style.SetPadRightMargin(rightMargin)
+style.SetPadTopMargin(topMargin)
+style.SetPadBottomMargin(botMargin)
+style.SetPadLeftMargin(leftMargin)
+style.cd()
+
 ops_dict = Operations().getOptionsDict('Transformations/')
 if not ops_dict['OK']:
     print('Failed to get SE information from DIRAC Operation config: %s'
