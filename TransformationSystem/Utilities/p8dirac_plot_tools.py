@@ -274,7 +274,7 @@ def quality_plots(input_file, tree_name,output_dir=None):
             jumpSizeBetweenEventsCut.append(-startFreqTrack[iValue+1]+endFreqTrack[iValue])
     return list_pfn_plots
 
-def uploadJobOutputRoot():
+def uploadJobOutputROOT():
     ############################
     ## Get Merge LFNs  #########
     ############################
