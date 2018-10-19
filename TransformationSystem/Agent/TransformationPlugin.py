@@ -99,5 +99,5 @@ class TransformationPlugin(DIRACTransformationPlugin):
             return ops_dict
         ops_dict = ops_dict['Value']
         PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
-        tasks = [(PROD_DEST_DATA_SE, file]
+        tasks = [(PROD_DEST_DATA_SE, file)]
         return S_OK(tasks)
