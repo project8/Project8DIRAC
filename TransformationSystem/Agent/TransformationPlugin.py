@@ -12,8 +12,6 @@ from DIRAC.TransformationSystem.Client.TransformationClient \
 from DIRAC.Core.DISET.RPCClient import RPCClient
 from DIRAC.ConfigurationSystem.Client.Helpers.Operations import Operations
 
-from Project8DIRAC.TransformationSystem.Client.Utilities import PluginUtilities
-
 __RCSID__ = "$Id$"
 
 class TransformationPlugin(DIRACTransformationPlugin):
