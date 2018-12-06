@@ -85,6 +85,12 @@ def uploadJobOutputROOT():
     ############################
     lfn_list = getMergeJobLFNs()
     print(lfn_list)
+    
+    ## Check if run is complete ##
+    #if not any("snapshot.json" in s for s in lfn_list):
+    #    print('No *_snapshot.json file found, so run is not yet complete.')
+    #    sys.exit(-9)
+        
     if len(lfn_list) == 0:
         print('No ROOT/HDF5 files found')
         sys.exit(-9)
