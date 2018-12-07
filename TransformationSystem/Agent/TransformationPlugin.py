@@ -67,6 +67,32 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		filtered_file = list({f for f in files if 'snapshot.json' in f})
 	    if not filtered_file:
 		continue
+	
+	    # Checking if all egg files have been processed before merging.
+	    expectedrootlist = []
+	    for file in result['Value']:
+	        if '.egg' in file:
+		    path, filename = os.path.split(file)
+		    expectedrootlist.append(filename[:-4] + '_event.root')
+            inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
+	    result = fc.findFilesByMetadata( inputDataQuery )
+	    if not result['OK']:
+	        print('Could not get processed LFN list')
+
+	    currootlist = []
+	    for elements in result['Value']:
+	        path, filename = os.path.split(elements)
+	        currootlist.append(filename)
+
+	    for rootfile in expectedrootlist:
+	        if rootfile not in currootlist:
+		    print '%s not found in list.'%(rootfile)
+		    print('Atleast one file not processed yet.')
+		    continue
+	    print('Processing step is complete and it is okay to move onto the merge step.')	
+	    
+		
+		
 	    #For each run_id, get list of event files from catalog to match with input lfn list.
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
 	    #result = fc.findFilesByMetadata( metadata )
