@@ -87,7 +87,6 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    for rootfile in expectedrootlist:
 	        if rootfile not in currootlist:
 		    print '%s not found in list.'%(rootfile)
-		    print('Atleast one file not processed yet.')
 		    continue
 	    print('Processing step is complete and it is okay to move onto the merge step.')	
 	    
