@@ -74,7 +74,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	        if '.egg' in file:
 		    path, filename = os.path.split(file)
 		    expectedrootlist.append(filename[:-4] + '_event.root')
-            inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
+	    inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
 	    result = fc.findFilesByMetadata( inputDataQuery )
 	    if not result['OK']:
 	        print('Could not get processed LFN list')
