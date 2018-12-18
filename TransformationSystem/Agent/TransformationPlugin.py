@@ -72,7 +72,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    expectedrootlist = []
 	    for file in result['Value']:
 	        if '.egg' in file:
-		    path, filename = os.path.split(file)
+		    #path, filename = os.path.split(file)
+		    filename = file.split('/')[-1]
 		    expectedrootlist.append(filename[:-4] + '_event.root')
 	    inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
 	    result = fc.findFilesByMetadata( inputDataQuery )
@@ -81,8 +82,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
 
 	    currootlist = []
 	    for elements in result['Value']:
-	        path, filename = os.path.split(elements)
-	        currootlist.append(filename)
+	        #path, filename = os.path.split(elements)
+	        filename = elements.split('/')[-1]
+		currootlist.append(filename)
 
 	    for rootfile in expectedrootlist:
 	        if rootfile not in currootlist:
