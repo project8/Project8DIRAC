@@ -61,10 +61,10 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    if not result['OK']:
 		print('count not get raw files')
 		continue
-	    files = []
+	    files_temp = []
 	    if result['OK']:
-		files = result['Value']
-		filtered_file = list({f for f in files if 'snapshot.json' in f})
+		files_temp = result['Value']
+		filtered_file = list({f for f in files_temp if 'snapshot.json' in f})
 	    if not filtered_file:
 		continue
 	
