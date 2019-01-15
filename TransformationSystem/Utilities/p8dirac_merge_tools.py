@@ -177,3 +177,4 @@ def uploadJobOutputROOT():
     if not res['OK']:
         print('Failed to register ancestors: %s' % res['Message'])
         sys.exit(-9)
+    sys.exit(0) # Done
