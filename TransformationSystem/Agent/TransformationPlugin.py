@@ -104,6 +104,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		good_runDict[runID] = runDict[runID]
 	    else:
 		print('List of event files from catalog do not match with input lfn list')
+		continue
 
 
         ops_dict = opsHelper.getOptionsDict('Transformations/')
