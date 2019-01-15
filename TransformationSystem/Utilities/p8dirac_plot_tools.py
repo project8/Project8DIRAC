@@ -56,7 +56,8 @@ PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
 PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 
 def check_lfn_health(lfn, software_tag):
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + lfn + " -q")
+    #status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + lfn + " -q")
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\nroot -b " + pfn + " -q")
     return status
   
 def getPlotJobLFNs():
