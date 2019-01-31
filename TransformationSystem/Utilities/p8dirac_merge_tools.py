@@ -28,7 +28,7 @@ PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 ## TODO: Should use dynamic software tag
 def check_lfn_health(pfn):
     #status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/current/setup.sh\root -b " + pfn + " -q")
+    #status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/current/setup.sh\root -b " + pfn + " -q")
     status = os.system("root -b " + pfn + " -q")
     return status
 
