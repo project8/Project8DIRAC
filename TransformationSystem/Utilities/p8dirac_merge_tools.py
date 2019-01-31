@@ -29,6 +29,7 @@ PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 def check_lfn_health(pfn):
     #status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
     status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/current/setup.sh\root -b " + pfn + " -q")
+    status = os.system("root -b " + pfn + " -q")
     return status
 
 def concatenate_root_files(output_root_file, input_root_files, force=False):
@@ -38,7 +39,8 @@ def concatenate_root_files(output_root_file, input_root_files, force=False):
     '''
     # Finding hadd and adding force
     #command = 'source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nhadd'
-    command = 'source /cvmfs/hep.pnnl.gov/project8/common/current/setup.sh\hadd'
+    #command = 'source /cvmfs/hep.pnnl.gov/project8/common/current/setup.sh\hadd'
+    command = 'hadd'
     if force:
         print('postprocessing: Forcing operation')
         command = '{} -f'.format(command)
