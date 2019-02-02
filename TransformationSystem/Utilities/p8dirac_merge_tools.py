@@ -28,7 +28,7 @@ PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 ## TODO: Should use dynamic software tag
 def check_lfn_health(pfn):
     #status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\root -b " + pfn + " -q")
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\nroot -b " + pfn + " -q")
     return status
 
 def concatenate_root_files(output_root_file, input_root_files, force=False):
@@ -38,7 +38,7 @@ def concatenate_root_files(output_root_file, input_root_files, force=False):
     '''
     # Finding hadd and adding force
     #command = 'source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nhadd'
-    command = 'source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\hadd'
+    command = 'source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\nhadd'
     command = 'hadd'
     if force:
         print('postprocessing: Forcing operation')
