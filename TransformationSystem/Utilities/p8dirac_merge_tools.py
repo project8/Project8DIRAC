@@ -39,7 +39,7 @@ def concatenate_root_files(output_root_file, input_root_files, force=False):
     # Finding hadd and adding force
     #command = 'source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nhadd'
     command = 'source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\nhadd'
-    command = 'hadd'
+    #command = 'hadd'
     if force:
         print('postprocessing: Forcing operation')
         command = '{} -f'.format(command)
