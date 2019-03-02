@@ -59,7 +59,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    inputDataQuery = {'DataType': 'data', 'DataLevel': 'RAW', 'run_id': metadata['run_id']}
 	    result = fc.findFilesByMetadata( inputDataQuery )
 	    if not result['OK']:
-		print('count not get raw files')
+		gLogger.notice('count not get raw files')
 		continue
 	    files_temp = []
 	    if result['OK']:
@@ -92,7 +92,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		    print '%s not found in list.'%(rootfile)
 		    gLogger.notice('All egg files have not been processed.')
 		    continue
-	    print('Processing step is complete and it is okay to move onto the merge step.')	
+	    	
 	    
 		
 		
@@ -100,7 +100,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
 	    #result = fc.findFilesByMetadata( metadata )
 	    if not result['OK']:
-		print('Could not get metadata')	
+		gLogger.notice('Could not get metadata')	
 		continue
 	    if set(result['Value'])==(set(runDict[runID])):
 		good_runDict[runID] = runDict[runID]
