@@ -76,7 +76,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		    #path, filename = os.path.split(file)
 		    filename = file.split('/')[-1]
 		    expectedrootlist.append(filename[:-4] + '_gain.root')
-	    inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
+	    inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataLevel': 'processed', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
 	    result = fc.findFilesByMetadata( inputDataQuery )
 	    if not result['OK']:
 	        print('Could not get processed LFN list')
