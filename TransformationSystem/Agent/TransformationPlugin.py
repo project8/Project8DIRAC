@@ -86,13 +86,13 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	        #path, filename = os.path.split(elements)
 	        filename = elements.split('/')[-1]
 		currootlist.append(filename)
-            egg_missing = False
+            eggfilenotprocessed = False
 	    for rootfile in expectedrootlist:
 	        if rootfile not in currootlist:
 		    print '%s not found in list.'%(rootfile)
 		    gLogger.notice('All egg files have not been processed.')
-                    egg_missing = True
-            if egg_missing:
+                    eggfilenotprocessed = True
+            if eggfilenotprocessed:
                 continue	    	
 	    
 	    #For each run_id, get list of event files from catalog to match with input lfn list.
@@ -113,7 +113,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
             return ops_dict
         ops_dict = ops_dict['Value']
         PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
-        tasks = [(PROD_DEST_DATA_SE, runDict[runID]) for runID in runDict]
+        tasks = [(PROD_DEST_DATA_SE, good_runDict[runID]) for runID in good_runDict]
         return S_OK(tasks)
 
 
