@@ -75,7 +75,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	        if '.egg' in file:
 		    #path, filename = os.path.split(file)
 		    filename = file.split('/')[-1]
-		    expectedrootlist.append(filename[:-4] + '_event.root')
+		    expectedrootlist.append(filename[:-4] + '_gain.root')
 	    inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
 	    result = fc.findFilesByMetadata( inputDataQuery )
 	    if not result['OK']:
@@ -86,16 +86,15 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	        #path, filename = os.path.split(elements)
 	        filename = elements.split('/')[-1]
 		currootlist.append(filename)
-
+            egg_missing = False
 	    for rootfile in expectedrootlist:
 	        if rootfile not in currootlist:
 		    print '%s not found in list.'%(rootfile)
 		    gLogger.notice('All egg files have not been processed.')
-		    continue
-	    	
+                    egg_missing = True
+            if egg_missing:
+                continue	    	
 	    
-		
-		
 	    #For each run_id, get list of event files from catalog to match with input lfn list.
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
 	    #result = fc.findFilesByMetadata( metadata )
