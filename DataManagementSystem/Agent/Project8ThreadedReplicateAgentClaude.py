@@ -136,15 +136,16 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         status, output = commands.getstatusoutput(cmd)
         if "No such file" not in output:
             ### Lets call WMS job on the file now
+            ### 20190308 - Let's actually NOT do that here. Commenting out the next block (BAV)
             
             ### Skip calling job on rf_bkgd json file
-            if not ('rf_bkgd' in lfn and ( lfn.endswith('.json') or lfn.endswith('.Setup') )):
-                resJob = self._submitJob(lfn)
-                if not resJob['OK']:
-                    gLogger.error('Job Submission failed. Msg: %s' %resJob['Message'])
-                    return True
-            else:
-                gLogger.info('No WMS job to be submitted on this lfn (%s)' %lfn)
+            #if not ('rf_bkgd' in lfn and ( lfn.endswith('.json') or lfn.endswith('.Setup') )):
+            #    resJob = self._submitJob(lfn)
+            #    if not resJob['OK']:
+            #        gLogger.error('Job Submission failed. Msg: %s' %resJob['Message'])
+            #        return True
+            #else:
+            #    gLogger.info('No WMS job to be submitted on this lfn (%s)' %lfn)
             
             ### Job submission was successful. Continue to remove the inputFile
             gLogger.info('File (%s) already exists ... removing.' %lfn)
