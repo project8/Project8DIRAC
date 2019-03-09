@@ -3,8 +3,12 @@
 # File: Project8ThreadedReplicateAgentClaude.py
 # Author: Vikas.Bansal
 # Version : 2
+#
 # Rev. Date : April 27, 2017
 # This code now submit ESR Calib job
+#
+# Rev. Date : March 8, 2019
+# Comment out submission of ESR Calib job (BAV)
 ########################################################################
 """ :mod: Project8ThreadedReplicateAgentClaude
     ====================
@@ -136,15 +140,16 @@ class Project8ThreadedReplicateAgentClaude(AgentModule):
         status, output = commands.getstatusoutput(cmd)
         if "No such file" not in output:
             ### Lets call WMS job on the file now
+            ### BAV 3/8/2019 - actually, let's not do that!  Commenting out the following if block
             
             ### Skip calling job on rf_bkgd json file
-            if not ('rf_bkgd' in lfn and ( lfn.endswith('.json') or lfn.endswith('.Setup') )):
-                resJob = self._submitJob(lfn)
-                if not resJob['OK']:
-                    gLogger.error('Job Submission failed. Msg: %s' %resJob['Message'])
-                    return True
-            else:
-                gLogger.info('No WMS job to be submitted on this lfn (%s)' %lfn)
+            #if not ('rf_bkgd' in lfn and ( lfn.endswith('.json') or lfn.endswith('.Setup') )):
+            #    resJob = self._submitJob(lfn)
+            #    if not resJob['OK']:
+            #        gLogger.error('Job Submission failed. Msg: %s' %resJob['Message'])
+            #        return True
+            #else:
+            #    gLogger.info('No WMS job to be submitted on this lfn (%s)' %lfn)
             
             ### Job submission was successful. Continue to remove the inputFile
             gLogger.info('File (%s) already exists ... removing.' %lfn)
