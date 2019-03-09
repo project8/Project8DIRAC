@@ -1,0 +1,33 @@
+## This file is for whatever environment customizations you may want to add.
+## You can do any of the normal bashrc things you may like (aliases etc.)
+## be careful if you are making changes to existing environment variables as
+## that could break the build system
+
+# Source global definitions
+if [ -f /etc/bashrc ]; then
+	. /etc/bashrc
+fi
+
+## Place your custom aliases here, can be whatever you want, these are just some examples
+#alias ls='ls -hAlFG'
+#alias rm='rm -i'
+#alias mv='mv -i'
+#alias cp='cp -ipr'
+#alias ssh='ssh -AY'
+#alias scp='scp -rp'
+#alias more='less'
+
+## Also place your environment variable settings (be careful with PATH, LD_LIBRARY_PATH, etc.)
+## eg: emacs-style command-line editing (could as easily be vim or nano or whatever; you may need to install it in your Dockerfile)
+#export EDITOR=emacs
+
+## Keep 1000 commands in history
+#set history = 5000
+#set savehist = 5000
+
+
+# add ~/.local/bin to the end of PATH (this is for locally pip-installed PyPI packages
+#export PATH=${PATH}:${HOME}/.local/bin
+
+# add current directory to the end of PATH
+#export PATH=${PATH}:.
