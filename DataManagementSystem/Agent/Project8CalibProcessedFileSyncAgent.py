@@ -52,8 +52,7 @@ class Project8CalibProcessedFileSyncAgent(AgentModule):
         self.dataManager = DataManager()
         self.am_setOption('shifterProxy', 'DataManager')
         
-        #self.SEDataDirPath = (self.am_getOption("SEDataDirPath",'/project8/user/v/vikas/project8/dirac/calib'))
-        self.SEDataDirPath = (self.am_getOption("SEDataDirPath",'/project8/user/s/schram/project8/dirac/calib'))
+        self.SEDataDirPath = (self.am_getOption("SEDataDirPath",'/project8/dirac/calib'))
         self.LocalDataDirPath = (self.am_getOption("LocalDataDirPath",'/data_claude/'))
         self.DIRACCfgSEPath = 'Resources/StorageElements'
         self.fc = FileCatalogClient()
@@ -71,10 +70,8 @@ class Project8CalibProcessedFileSyncAgent(AgentModule):
         """ Private method to upload and register file
             """
         cmd = 'dirac-dms-directory-sync -o /Resources/Sites/Test=true '
-        #gLogger.info("local file is {}".format(lfn))
         cmd += LPN + ' ' + localDir
         gLogger.info(cmd)
-        #gLogger.info("full upload command is:\n{}".format(cmd))
         initialTime = time.time()
         status, output = commands.getstatusoutput(cmd)
         elapsedTime = time.time() - initialTime
@@ -94,18 +91,15 @@ class Project8CalibProcessedFileSyncAgent(AgentModule):
  
         for calib_dir in self.calibDirs:
 
-            ##?? ESR data now goes to the right place in the catalog. handle rf_bkgd until we fix that to go to the right place.
-            if calib_dir == 'rf_bkgd':
-                gLogger.info("Syncing rf_bkgd")
-                se_data_dir = path.join(self.SEDataDirPath, path.join(calib_dir,self.ProcDataDir))
-            else:
-                gLogger.info("Syncing esr")
-                se_data_dir = path.join('/project8/dirac/calib', path.join(calib_dir,self.ProcDataDir))
+            gLogger.info("Syncing {}".format(calib_dir))
+            
+            se_data_dir = path.join(self.SEDataDirPath, path.join(calib_dir,self.ProcDataDir))
             local_data_dir = path.join(self.LocalDataDirPath, path.join(calib_dir,self.ProcDataDir))
             
             gLogger.info("Using se dir:"+se_data_dir)
             gLogger.info("Using local dir:"+local_data_dir)
 
             status = self._syncDir( se_data_dir, local_data_dir)
+            
         
         return S_OK()
