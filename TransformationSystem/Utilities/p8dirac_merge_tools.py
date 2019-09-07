@@ -87,7 +87,7 @@ def uploadJobOutputROOT():
     ## Get Merge LFNs  #########
     ############################
     lfn_list = getMergeJobLFNs()
-    #print(lfn_list)
+    print(lfn_list)
     
         
     if len(lfn_list) == 0:
@@ -109,12 +109,12 @@ def uploadJobOutputROOT():
         print("Failed to initialize file catalog object.")
         sys.exit(-9)
         
-    #print(lfn_list)
+    print(lfn_list)
     metadata = fc.getFileUserMetadata(lfn_list[0])  
     if not metadata['OK']:
         print("problem with metadata query")
         sys.exit(-9)
-    #print(metadata['Value'])
+    print(metadata['Value'])
     
     ########################
     # Check health of LFNs #
@@ -124,8 +124,8 @@ def uploadJobOutputROOT():
     bad_files = []
     for lfn in lfn_list:
         local_file = os.path.basename(lfn)
-        #print('LFN: %s' %lfn)
-        #print('Local File: %s' % local_file)
+        print('LFN: %s' %lfn)
+        print('Local File: %s' % local_file)
         status = check_lfn_health(local_file)
         if status > 0:
             good_files.append(local_file)
@@ -155,17 +155,9 @@ def uploadJobOutputROOT():
     lfn_dirname = os.path.dirname(lfn_list[0])
     event_lfn = lfn_dirname + '/' + output_filename
     event_pfn = os.getcwd() + '/' + output_filename
-    event_lfn = event_lfn.replace('events_', 'rid')
-    res = dirac.removeFile(event_lfn)
-    #event_lfn = event_lfn.replace('events_', 'rid')
-    if not res['OK']:
-        print('Could not remove file. File might not be present')
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
-        print('Checking file upload status')
         print('Failed to upload merged file %s to %s.' % (event_pfn, event_lfn))
-        #print(res)
-        #print(os.listdir(os.getcwd()))
         sys.exit(-9)
 
     ###################
@@ -186,6 +178,4 @@ def uploadJobOutputROOT():
     if not res['OK']:
         print('Failed to register ancestors: %s' % res['Message'])
         sys.exit(-9)
-
-    print('Exiting p8merge_script.py')
     sys.exit(0) # Done
