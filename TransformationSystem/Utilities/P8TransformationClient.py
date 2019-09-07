@@ -4,7 +4,7 @@ from DIRAC.Core.Base import Script
 Script.parseCommandLine()
 
 import os, sys
-
+import pdb
 from DIRAC import gLogger, gConfig, S_OK, S_ERROR
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Resources.Catalog.FileCatalogClient import FileCatalogClient
@@ -31,6 +31,7 @@ class P8Transformation(Transformation):
         self.config_tag = config_tag
 
     def buildTransformation(self):
+        pdb.set_trace()
         path_to_sandbox = PATH_TO_SANDBOX % (self.software_tag, self.config_tag)
         # Use DIRAC Operation config
         ops_dict = Operations().getOptionsDict('Transformations/')
@@ -44,9 +45,7 @@ class P8Transformation(Transformation):
             dirac = Dirac()
         except Exception:
             return S_ERROR('Failed to initialize Dirac object')
-
         cwd = os.getcwd()
-
         # Try to get the configuration file and if that doesn't work, then
         # quit out.
         cfg_file = os.path.join(path_to_sandbox, 'Katydid_ROACH_Config.yaml')
@@ -61,7 +60,6 @@ class P8Transformation(Transformation):
         # The config file exists, so we can proceed.
         # Remove it, since getFile actually retrieves it, and we don't need it here.
         subprocess.check_call('rm ./Katydid_ROACH_Config.yaml', shell=True)
-
         # Create Katydid script
         script = (
                 '#!/bin/bash\n'
@@ -71,14 +69,16 @@ class P8Transformation(Transformation):
                 '(source /cvmfs/hep.pnnl.gov/project8/katydid/%s/setup.sh; ' 
                 'Katydid -c ${CFG_FILE} -e ${P8_INPUT_FILE} )\n'
                 'ls -l\n'
+                '(source /cvmfs/hep.pnnl.gov/project8/katydid/%s/setup.sh; '
+                'python -c "import livetime as livetimetools; '
+                'print(livetimetools.main())")\n'
                 'python -c "import p8dirac_wms_tools as tools; '
                 'print(tools.uploadJobOutputROOT(\'%s\', \'%s\'))"'
-                % (self.software_tag, self.software_tag, self.config_tag))
+                % (self.software_tag, self.software_tag, self.software_tag, self.config_tag))
         script_name = os.path.join(cwd, 'katydid_%s.sh' % self.software_tag)
         f = open(script_name, 'w+')
         f.write(script)
         f.close()
-
         # Upload Katydid script
         katydid_file = os.path.join(
                 path_to_sandbox,'katydid_%s.sh' % self.software_tag)
@@ -91,6 +91,22 @@ class P8Transformation(Transformation):
         # Regardless of if the file was uploaded successfully, remove the temp file
         subprocess.check_call('rm %s' % script_name, shell=True)
         # Now check if the file was uploaded successfully
+        if not res['OK']:
+          return res
+
+        # Upload live time file
+        livetime_file = os.path.join(path_to_sandbox, 'livetime.py')
+        print('livetime_file: %s\n' % livetime_file)
+        res = dirac.removeFile(livetime_file)
+        if not res['OK']:
+            return res
+        res = dirac.addFile(
+                livetime_file,
+                os.path.join(
+                    cwd,
+                    'livetime.py'),
+                PROD_DEST_DATA_SE)
+
         if not res['OK']:
           return res
 
@@ -129,12 +145,12 @@ class P8Transformation(Transformation):
           return res
 
         # Create a job and use the files we just uploaded as the input sandbox
-
         self.j = Job()
         self.j.setInputSandbox(
                 ['LFN:%s' % cfg_file,
                  'LFN:%s' % katydid_file,
-                 'LFN:%s' % tools_file])
+                 'LFN:%s' % tools_file,
+                 'LFN:%s' % livetime_file])
         self.j.setExecutable(
                 './' + os.path.basename(katydid_file),
                 arguments=os.path.basename(cfg_file))
@@ -145,7 +161,7 @@ class P8Transformation(Transformation):
 
         # Set other parameters of this transformation
         self.setTransformationName(
-                'run7803-7839-katydid_%s-termite_%s_egg_v1'
+                'runs37000-39000-katydid_%s-termite_%s_egg_v2'
                 % (self.software_tag, self.config_tag))
         self.setTransformationGroup('KatydidMetadataProcess')
         self.setType('DataReprocessing')
@@ -187,7 +203,7 @@ class P8Transformation(Transformation):
                 # Elise request: 8075-8599 
                 #{'DataLevel': 'RAW', 'DataType': 'Data','run_id': {">=":'8075', "<=":'8599'}})
                 # Elise request: 7803-7839 
-                {'DataLevel': 'RAW', 'DataType': 'Data','run_id': {">=":'7803', "<=":'7839'}})
-
+                #{'DataLevel': 'RAW', 'DataType': 'Data','run_id': {">=":'11115'}})
+                {'DataLevel': 'RAW', 'DataType': 'Data','run_id': {">=":'37000', "<=":'39000'}})
         # above run_id is temporarily there for testing
         return S_OK(tid['Value'])

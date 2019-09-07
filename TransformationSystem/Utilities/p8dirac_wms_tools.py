@@ -177,4 +177,3 @@ def uploadJobOutputROOT(software_tag, config_tag):
         sys.exit(-9)
 
     sys.exit(0) # Done
-

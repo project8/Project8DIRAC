@@ -59,32 +59,61 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    inputDataQuery = {'DataType': 'data', 'DataLevel': 'RAW', 'run_id': metadata['run_id']}
 	    result = fc.findFilesByMetadata( inputDataQuery )
 	    if not result['OK']:
-		print('count not get raw files')
+		gLogger.notice('count not get raw files')
 		continue
-	    files = []
+	    files_temp = []
 	    if result['OK']:
-		files = result['Value']
-		filtered_file = list({f for f in files if 'snapshot.json' in f})
+		files_temp = result['Value']
+		filtered_file = list({f for f in files_temp if 'snapshot.json' in f})
 	    if not filtered_file:
+		gLogger.notice('snapshot.json file is not present.')
 		continue
+	
+	    # Checking if all egg files have been processed before merging.
+	    expectedrootlist = []
+	    for file in result['Value']:
+	        if '.egg' in file:
+		    #path, filename = os.path.split(file)
+		    filename = file.split('/')[-1]
+		    expectedrootlist.append(filename[:-4] + '_gain.root')
+	    inputDataQuery = {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataLevel': 'processed', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']}
+	    result = fc.findFilesByMetadata( inputDataQuery )
+	    if not result['OK']:
+	        print('Could not get processed LFN list')
+
+	    currootlist = []
+	    for elements in result['Value']:
+	        #path, filename = os.path.split(elements)
+	        filename = elements.split('/')[-1]
+		currootlist.append(filename)
+            eggfilenotprocessed = False
+	    for rootfile in expectedrootlist:
+	        if rootfile not in currootlist:
+		    print '%s not found in list.'%(rootfile)
+		    gLogger.notice('All egg files have not been processed.')
+                    eggfilenotprocessed = True
+            if eggfilenotprocessed:
+                continue	    	
+	    
 	    #For each run_id, get list of event files from catalog to match with input lfn list.
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
 	    #result = fc.findFilesByMetadata( metadata )
 	    if not result['OK']:
-		print('Could not get metadata')	
+		gLogger.notice('Could not get metadata')	
 		continue
 	    if set(result['Value'])==(set(runDict[runID])):
 		good_runDict[runID] = runDict[runID]
 	    else:
-		print('List of event files from catalog do not match with input lfn list')
+		gLogger.notice('List of event files from catalog do not match with input lfn list')
+		continue
 
-
+        gLogger.notice('All merge conditions met, creating merge jobs.')
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
             return ops_dict
         ops_dict = ops_dict['Value']
         PROD_DEST_DATA_SE = ops_dict.get('ProdDestDataSE', 'PNNL-PIC-SRM-SE')
-        tasks = [(PROD_DEST_DATA_SE, runDict[runID]) for runID in runDict]
+        tasks = [(PROD_DEST_DATA_SE, good_runDict[runID]) for runID in good_runDict]
         return S_OK(tasks)
 
 

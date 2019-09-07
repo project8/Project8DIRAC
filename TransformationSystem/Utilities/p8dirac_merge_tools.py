@@ -27,7 +27,8 @@ PROD_DEST_MONITORING_SE = ops_dict.get('ProdDestMonitoringSE', '')
 
 ## TODO: Should use dynamic software tag
 def check_lfn_health(pfn):
-    status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
+    #status = os.system("source /cvmfs/hep.pnnl.gov/project8/katydid/" + "v2.13.0" + "/setup.sh\nroot -b " + pfn + " -q")
+    status = os.system("source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\nroot -b " + pfn + " -q")
     return status
 
 def concatenate_root_files(output_root_file, input_root_files, force=False):
@@ -36,7 +37,9 @@ def concatenate_root_files(output_root_file, input_root_files, force=False):
     Doing so will merge the trees of each input file.
     '''
     # Finding hadd and adding force
-    command = 'source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nhadd'
+    #command = 'source /cvmfs/hep.pnnl.gov/project8/katydid/v2.13.0/setup.sh\nhadd'
+    command = 'source /cvmfs/hep.pnnl.gov/project8/common/v0.4.0/setup.sh\nhadd'
+    #command = 'hadd'
     if force:
         print('postprocessing: Forcing operation')
         command = '{} -f'.format(command)
@@ -84,7 +87,9 @@ def uploadJobOutputROOT():
     ## Get Merge LFNs  #########
     ############################
     lfn_list = getMergeJobLFNs()
-    print(lfn_list)
+    #print(lfn_list)
+    
+        
     if len(lfn_list) == 0:
         print('No ROOT/HDF5 files found')
         sys.exit(-9)
@@ -104,12 +109,12 @@ def uploadJobOutputROOT():
         print("Failed to initialize file catalog object.")
         sys.exit(-9)
         
-    print(lfn_list)
+    #print(lfn_list)
     metadata = fc.getFileUserMetadata(lfn_list[0])  
     if not metadata['OK']:
         print("problem with metadata query")
         sys.exit(-9)
-    print(metadata['Value'])
+    #print(metadata['Value'])
     
     ########################
     # Check health of LFNs #
@@ -119,8 +124,8 @@ def uploadJobOutputROOT():
     bad_files = []
     for lfn in lfn_list:
         local_file = os.path.basename(lfn)
-        print('LFN: %s' %lfn)
-        print('Local File: %s' % local_file)
+        #print('LFN: %s' %lfn)
+        #print('Local File: %s' % local_file)
         status = check_lfn_health(local_file)
         if status > 0:
             good_files.append(local_file)
@@ -150,9 +155,17 @@ def uploadJobOutputROOT():
     lfn_dirname = os.path.dirname(lfn_list[0])
     event_lfn = lfn_dirname + '/' + output_filename
     event_pfn = os.getcwd() + '/' + output_filename
+    event_lfn = event_lfn.replace('events_', 'rid')
+    res = dirac.removeFile(event_lfn)
+    #event_lfn = event_lfn.replace('events_', 'rid')
+    if not res['OK']:
+        print('Could not remove file. File might not be present')
     res = dirac.addFile(event_lfn, event_pfn, PROD_DEST_DATA_SE)
     if not res['OK']:
+        print('Checking file upload status')
         print('Failed to upload merged file %s to %s.' % (event_pfn, event_lfn))
+        #print(res)
+        #print(os.listdir(os.getcwd()))
         sys.exit(-9)
 
     ###################
@@ -173,3 +186,6 @@ def uploadJobOutputROOT():
     if not res['OK']:
         print('Failed to register ancestors: %s' % res['Message'])
         sys.exit(-9)
+
+    print('Exiting p8merge_script.py')
+    sys.exit(0) # Done
