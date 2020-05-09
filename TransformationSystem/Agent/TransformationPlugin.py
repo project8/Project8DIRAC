@@ -68,7 +68,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    if not filtered_file:
 		gLogger.notice('snapshot.json file is not present.')
 		continue
-	
+	    '''
 	    # Checking if all egg files have been processed before merging.
 	    expectedrootlist = []
 	    for file in result['Value']:
@@ -106,7 +106,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    else:
 		gLogger.notice('List of event files from catalog do not match with input lfn list')
 		continue
-
+            '''  
         gLogger.notice('All merge conditions met, creating merge jobs.')
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
