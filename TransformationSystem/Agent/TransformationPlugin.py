@@ -92,8 +92,9 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		    print '%s not found in list.'%(rootfile)
 		    gLogger.notice('All egg files have not been processed.')
                     eggfilenotprocessed = True
-            if eggfilenotprocessed:
-                continue	    	
+            #MT::
+	    #if eggfilenotprocessed:
+            #    continue	    	
 	    
 	    #For each run_id, get list of event files from catalog to match with input lfn list.
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
