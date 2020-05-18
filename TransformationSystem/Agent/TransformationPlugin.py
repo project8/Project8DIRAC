@@ -102,7 +102,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
 	    if not result['OK']:
 		gLogger.notice('Could not get metadata')	
 		continue
-	    good_runDict[runID] = runDict[runID]
+	    #good_runDict[runID] = runDict[runID]
 	    #'''
 	    if set(result['Value'])==(set(runDict[runID])):
 		good_runDict[runID] = runDict[runID]
