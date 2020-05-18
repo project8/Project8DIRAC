@@ -93,8 +93,8 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		    gLogger.notice('All egg files have not been processed.')
                     eggfilenotprocessed = True
             #MT::
-	    #if eggfilenotprocessed:
-            #    continue	    	
+	    if eggfilenotprocessed:
+                continue	    	
 	    
 	    #For each run_id, get list of event files from catalog to match with input lfn list.
 	    result = fc.findFilesByMetadata( {'run_id': metadata['run_id'], 'DataType': 'Data', 'DataFlavor': 'event', 'DataExt': 'root', 'SoftwareVersion': metadata['SoftwareVersion'], 'ConfigVersion': metadata['ConfigVersion']} )
@@ -103,13 +103,13 @@ class TransformationPlugin(DIRACTransformationPlugin):
 		gLogger.notice('Could not get metadata')	
 		continue
 	    good_runDict[runID] = runDict[runID]
-	    '''
+	    #'''
 	    if set(result['Value'])==(set(runDict[runID])):
 		good_runDict[runID] = runDict[runID]
 	    else:
 		gLogger.notice('List of event files from catalog do not match with input lfn list')
 		continue
-            '''
+            #'''
         gLogger.notice('All merge conditions met, creating merge jobs.')
         ops_dict = opsHelper.getOptionsDict('Transformations/')
         if not ops_dict['OK']:
