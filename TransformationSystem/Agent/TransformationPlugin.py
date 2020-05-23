@@ -119,7 +119,7 @@ class TransformationPlugin(DIRACTransformationPlugin):
         tasks = [(PROD_DEST_DATA_SE, good_runDict[runID]) for runID in good_runDict]
         return S_OK(tasks)
 
-    def _P8MergeNoChecks(self):
+    def _P8MergeWoChecks(self):
         """
         Generate a task that merges processed data
         """
